@@ -1,0 +1,11 @@
+{
+  "val_accuracy": 0.999379652605459,
+  "epochs_trained": 148,
+  "created_at": "2026-05-25T20:13:42",
+  "run_dir": "/content/Do_an/training/results_transformer_200epoch/run_20260525_192353",
+  "test_accuracy": 0.9994818652849741,
+  "model_name": "transformer",
+  "num_classes": 20,
+  "target_len": 201,
+  "params": 153268
+}

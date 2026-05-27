@@ -1,0 +1,11 @@
+{
+  "val_accuracy": 0.9975186104218362,
+  "epochs_trained": 102,
+  "created_at": "2026-05-25T19:22:33",
+  "run_dir": "/content/Do_an/training/results_lstm_200epoch/run_20260525_184954",
+  "test_accuracy": 0.9963730569948187,
+  "model_name": "lstm",
+  "num_classes": 20,
+  "target_len": 201,
+  "params": 640788
+}

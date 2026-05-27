@@ -1,0 +1,111 @@
+# =============================================================================
+#  config.yaml  —  Cầu nối tập trung: data_collection ↔ training ↔ demo
+#  Tất cả đường dẫn là TƯƠNG ĐỐI từ repo root (thư mục chứa file này).
+#  Code Python đọc file này qua: training.load_config()
+# =============================================================================
+
+project:
+  name: gesture_recognition_imu
+  version: "1.0"
+  seed: 42
+
+# ── Đường dẫn ──────────────────────────────────────────────────────────────
+paths:
+  # Nguồn dữ liệu (data_collection)
+  raw_data:    "data_collection/data/raw"
+  labels_json: "data_collection/labels.json"
+  processed:   "data_collection/data/SHG_Dataset"        # Dataset đã ở 50Hz
+
+  # Kết quả huấn luyện (khớp với _find_latest_run trong demo/backend/app.py)
+  results_cnn:         "training/results_cnn_200epoch"
+  results_lstm:        "training/results_lstm_200epoch"
+  results_transformer: "training/results_transformer_200epoch"
+  results_rf:          "training/results_rf"
+  checkpoints:         "training/checkpoints"
+
+  # Xuất sang web demo
+  demo_models: "demo/models"
+
+  # Nơi lưu figures cho báo cáo
+  figures: "reports/figures"
+
+# ── Tiền xử lý ─────────────────────────────────────────────────────────────
+preprocessing:
+  source_hz:       100
+  target_hz:        50
+  target_len:      201      # 50 Hz × 4.02 s ≈ 201 mẫu (khớp DEMO_TARGET_LEN)
+  window_seconds:  4.02
+  pad_mode:        edge     # edge | zeros
+
+# ── Phân chia tập dữ liệu ──────────────────────────────────────────────────
+split:
+  strategy:      subject    # subject (độc lập người dùng) | random
+  test_subjects:  [S13, S14, S15]
+  val_subjects:   [S11, S12]
+  # S01–S10 tự động → train
+  label_filter:   null      # null = dùng tất cả nhãn trong labels.json
+
+# ── Data Augmentation (chỉ áp dụng cho Deep Learning) ─────────────────────
+augmentation:
+  enabled:              true
+  jitter_sigma:         0.015   # Gauss noise
+  scale_range:          [0.90, 1.10]
+  time_warp_max:        0.10    # Giãn/nén trục thời gian ±10%
+  magnitude_warp:       true
+  channel_dropout_p:    0.10    # Ngẫu nhiên zero 1 kênh
+
+# ── Tham số huấn luyện chung ───────────────────────────────────────────────
+training:
+  batch_size:      64
+  max_epochs:      200         # Giới hạn trên — early stopping sẽ dừng sớm hơn
+  learning_rate:   1.0e-3
+  weight_decay:    1.0e-4
+  patience:        20          # Dừng nếu val_acc không cải thiện 20 epochs liên tiếp
+  scheduler:       cosine      # cosine | step
+  label_smoothing: 0.05
+  num_workers:     2
+  pin_memory:      false
+
+# ── Kiến trúc mô hình ──────────────────────────────────────────────────────
+models:
+  channels: [ax_g, ay_g, az_g, gx_dps, gy_dps, gz_dps]
+  num_channels: 6
+
+  cnn:                          # 1D-CNN thuần (Baseline DL)
+    conv_configs: [[32, 7], [64, 5], [128, 3]]   # [out_ch, kernel]
+    dropout: 0.40
+    fc_hidden: 128
+
+  lstm:                         # CNN front-end + Bi-LSTM
+    cnn_channels: [32, 64]
+    cnn_kernel: 5
+    lstm_hidden: 128
+    lstm_layers: 2
+    bidirectional: true
+    dropout: 0.30
+    fc_hidden: 128
+
+  transformer:                  # Lightweight Transformer
+    d_model: 64
+    nhead: 4
+    num_layers: 3
+    dim_feedforward: 256
+    dropout: 0.10
+    max_seq_len: 256
+
+  random_forest:                # Late Fusion RF (2 nhánh)
+    # Chỉ số kênh trong CHANNELS list
+    accel_indices: [0, 1, 2]    # ax_g, ay_g, az_g
+    gyro_indices:  [3, 4, 5]    # gx_dps, gy_dps, gz_dps
+    n_estimators: 300
+    max_depth: null
+    min_samples_split: 5
+    class_weight: balanced
+    fusion_strategy: soft       # soft (average proba) | hard (majority vote)
+
+# ── Export sang demo ───────────────────────────────────────────────────────
+export:
+  auto_export:    true
+  metric:         val_accuracy  # Chỉ số để chọn best run
+  min_threshold:  0.80
+  copy_labels:    true          # Copy labels.json vào run dir

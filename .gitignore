@@ -1,0 +1,37 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Model checkpoints lớn (>50 MB) ────────────────────────
+gaformer/checkpoints/gaformer_20260525_113523/best.pt
+gaformer/checkpoints/comparison/*.pt
+
+# ── Dữ liệu (quá lớn cho GitHub — xem README để download) ─
+data_collection/data/
+
+
+# ── File PDF báo cáo / slide (nặng) ──────────────────────
+*.pdf
+
+# ── Kết quả training trung gian ──────────────────────────
+train_4_model/training/results_cnn_200epoch/
+train_4_model/training/results_lstm_200epoch/
+train_4_model/training/results_transformer_200epoch/
+
+# ── OS / IDE ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+*.tmp

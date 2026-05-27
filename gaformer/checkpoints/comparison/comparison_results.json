@@ -1,0 +1,42 @@
+[
+  {
+    "method": "gadf_coatnet0",
+    "label": "GADF + CoAtNet-0",
+    "params_M": 24.35,
+    "latency_ms": 5.24,
+    "accuracy_pct": 99.47,
+    "precision_pct": 99.49,
+    "recall_pct": 99.5,
+    "f1_pct": 99.49
+  },
+  {
+    "method": "gasf_coatnet0",
+    "label": "GASF + CoAtNet-0",
+    "params_M": 24.35,
+    "latency_ms": 5.2,
+    "accuracy_pct": 99.17,
+    "precision_pct": 99.2,
+    "recall_pct": 99.18,
+    "f1_pct": 99.18
+  },
+  {
+    "method": "gadf_resnet50",
+    "label": "GADF + ResNet50",
+    "params_M": 23.56,
+    "latency_ms": 3.41,
+    "accuracy_pct": 100.0,
+    "precision_pct": 100.0,
+    "recall_pct": 100.0,
+    "f1_pct": 100.0
+  },
+  {
+    "method": "gaformer",
+    "label": "GADF + CoAtNet-light (GAFormer)",
+    "params_M": 20.5,
+    "latency_ms": 4.11,
+    "accuracy_pct": 99.62,
+    "precision_pct": 99.65,
+    "recall_pct": 99.64,
+    "f1_pct": 99.64
+  }
+]

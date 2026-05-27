@@ -1,0 +1,1928 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SmartHome Gesture Control</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg:#edf3f6;
+    --card:#ffffff;
+    --line:#d7e0e6;
+    --text:#0f172a;
+    --muted:#475569;
+    --teal:#0f8b83;
+    --teal-dark:#0b6f69;
+    --red:#ef4444;
+    --green:#16a34a;
+    --blue:#2563eb;
+    --amber:#f59e0b;
+    --purple:#7c3aed;
+    --wall:#e7f2f5;
+    --floor:#b9a58e;
+    --floor-line:#aa967e;
+    --font-ui:"Segoe UI", Tahoma, Arial, sans-serif;
+    --font-display:"Segoe UI", Tahoma, Arial, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    overflow:hidden;
+  }
+  .app {
+    width:100vw;
+    height:100dvh;
+    display:grid;
+    grid-template-columns:minmax(0, 3fr) minmax(360px, 2fr);
+    gap:6px;
+    padding:6px;
+  }
+  .stage, .side {
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:7px;
+    overflow:hidden;
+    box-shadow:0 1px 3px rgba(15, 23, 42, .08);
+  }
+  .stage {
+    display:grid;
+    grid-template-rows:54px 1fr;
+    min-width:0;
+    min-height:0;
+  }
+  .topbar {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:7px 13px;
+    border-bottom:1px solid var(--line);
+  }
+  h1 {
+    margin:0;
+    font-size:19px;
+    font-weight:800;
+    letter-spacing:0;
+    font-family:var(--font-display);
+  }
+  .subtitle {
+    margin-top:3px;
+    color:var(--muted);
+    font-size:11px;
+  }
+  .top-actions {
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .top-actions button {
+    width:auto;
+  }
+  .pill {
+    min-height:24px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:#f8fafc;
+    color:#0f172a;
+    font-weight:700;
+    font-size:11px;
+    font-family:var(--font-ui);
+  }
+  .pill.teal {
+    color:#fff;
+    border-color:var(--teal);
+    background:var(--teal);
+  }
+  .room {
+    position:relative;
+    min-height:0;
+    overflow:hidden;
+    perspective:900px;
+    background:
+      radial-gradient(circle at 78% 16%, rgba(255,255,255,.78), transparent 23%),
+      linear-gradient(90deg, rgba(255,255,255,.45) 1px, transparent 1px) 0 0 / 56px 62%,
+      linear-gradient(180deg, #eef8fa 0%, #dcecef 58%, #cab596 58%, #b29a78 100%);
+  }
+  .room::before {
+    content:"";
+    position:absolute;
+    left:7%;
+    right:7%;
+    top:7%;
+    height:54%;
+    border:1px solid rgba(139, 161, 173, .22);
+    border-bottom-color:rgba(104, 125, 137, .28);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.42), transparent 18%, transparent 82%, rgba(111, 137, 150, .12)),
+      linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+    box-shadow:inset 0 -18px 30px rgba(98, 125, 137, .08), 0 18px 38px rgba(15, 23, 42, .06);
+    z-index:0;
+    pointer-events:none;
+  }
+  .floor-lines {
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:36%;
+    background:
+      repeating-linear-gradient(12deg, rgba(117, 91, 60, .18) 0 1px, transparent 1px 42px),
+      repeating-linear-gradient(168deg, rgba(117, 91, 60, .16) 0 1px, transparent 1px 46px),
+      linear-gradient(180deg, rgba(128, 102, 72, .35) 0 6px, transparent 6px);
+    transform-origin:bottom center;
+    transform:rotateX(58deg) scaleY(1.42);
+    z-index:1;
+    pointer-events:none;
+  }
+  .window {
+    position:absolute;
+    inset:12px 12px 16px;
+    overflow:hidden;
+    border:7px solid #80543c;
+    border-radius:5px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.58) 0 12%, transparent 12% 100%),
+      linear-gradient(180deg, #9ee7ff 0%, #dff8ff 48%, #b8d68c 49%, #8fbc68 100%);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.48), 0 12px 22px rgba(80, 64, 45, .16);
+    z-index:1;
+  }
+  .window::before,
+  .window::after {
+    content:"";
+    position:absolute;
+    background:#80543c;
+    box-shadow:0 0 0 1px rgba(255,255,255,.24);
+  }
+  .window::before {
+    left:50%;
+    top:0;
+    bottom:0;
+    width:5px;
+    transform:translateX(-50%);
+  }
+  .window::after {
+    left:0;
+    right:0;
+    top:50%;
+    height:5px;
+    transform:translateY(-50%);
+  }
+  .curtain-rod {
+    position:absolute;
+    left:-7px;
+    right:-7px;
+    top:0;
+    height:10px;
+    border-radius:999px;
+    background:linear-gradient(180deg, #956052, #63352f);
+    box-shadow:0 5px 10px rgba(91, 42, 36, .22);
+    z-index:4;
+  }
+  .curtain {
+    position:absolute;
+    top:8px;
+    width:50%;
+    height:calc(100% - 8px);
+    background:
+      repeating-linear-gradient(90deg, #d9554c 0 13px, #b93631 13px 25px, #e0645b 25px 39px);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.05), 0 12px 24px rgba(127, 29, 29, .12);
+    transition:transform .35s ease, opacity .35s ease;
+    z-index:3;
+  }
+  .curtain.left {
+    left:0;
+    transform-origin:left center;
+    border-radius:0 0 5px 0;
+  }
+  .curtain.right {
+    right:0;
+    transform-origin:right center;
+    border-radius:0 0 0 5px;
+  }
+  #node-curtain.open .curtain {
+    opacity:.94;
+  }
+  #node-curtain.open .curtain.left {
+    transform:translateX(-8%) scaleX(.34);
+  }
+  #node-curtain.open .curtain.right {
+    transform:translateX(8%) scaleX(.34);
+  }
+  .tv-wrap {
+    width:clamp(235px, 22vw, 320px);
+    text-align:center;
+    filter:drop-shadow(0 18px 18px rgba(15, 23, 42, .22));
+  }
+  .tv-screen {
+    height:clamp(128px, 22vh, 176px);
+    display:grid;
+    place-items:center;
+    border:6px solid #263241;
+    border-radius:8px;
+    background:#111820;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.05), 0 18px 32px rgba(30, 41, 59, .22);
+    color:#fff;
+    font-size:clamp(18px, 1.5vw, 24px);
+    font-weight:900;
+    letter-spacing:0;
+  }
+  #node-tv.on .tv-screen {
+    background:linear-gradient(135deg, #1d4ed8, #22d3ee);
+  }
+  .tv-stand {
+    width:62px;
+    height:7px;
+    margin:8px auto 0;
+    border-left:18px solid transparent;
+    border-right:18px solid transparent;
+    border-bottom:7px solid #263241;
+  }
+  .sofa {
+    position:absolute;
+    left:calc(50% + 0.5cm);
+    bottom:clamp(28px, 5vh, 54px);
+    width:clamp(190px, 20vw, 300px);
+    height:clamp(62px, 10vh, 92px);
+    border-radius:12px 12px 8px 8px;
+    background:linear-gradient(180deg, #4b8e9a 0%, #2e6872 58%, #245761 100%);
+    box-shadow:0 22px 32px rgba(52, 38, 25, .28), inset 0 7px 0 rgba(255,255,255,.12);
+    transform:translateX(-50%) skewX(-2deg);
+    z-index:6;
+  }
+  .sofa::before {
+    content:"";
+    position:absolute;
+    left:9%;
+    right:9%;
+    top:-20%;
+    height:48%;
+    border-radius:12px 12px 6px 6px;
+    background:linear-gradient(180deg, #5aa2ad, #386d77);
+    box-shadow:0 8px 12px rgba(15,23,42,.16);
+  }
+  .sofa::after {
+    content:"";
+    position:absolute;
+    left:8%;
+    right:8%;
+    bottom:9%;
+    height:35%;
+    border-radius:8px;
+    background:linear-gradient(90deg, rgba(255,255,255,.12), transparent 35%, transparent 65%, rgba(0,0,0,.08));
+  }
+  .room-person {
+    position:absolute;
+    left:calc(50% + 0.5cm - clamp(145px, 14vw, 220px));
+    bottom:clamp(72px, 10vh, 112px);
+    width:clamp(48px, 4.4vw, 66px);
+    height:clamp(132px, 22vh, 176px);
+    z-index:7;
+    pointer-events:none;
+    filter:drop-shadow(0 15px 14px rgba(44, 30, 18, .22));
+  }
+  .room-person::before {
+    content:"";
+    position:absolute;
+    left:4%;
+    right:4%;
+    bottom:-9px;
+    height:14px;
+    border-radius:50%;
+    background:rgba(62, 45, 30, .2);
+    transform:skewX(-18deg);
+  }
+  .person-head {
+    position:absolute;
+    left:50%;
+    top:0;
+    width:42%;
+    aspect-ratio:1;
+    border-radius:50%;
+    background:linear-gradient(145deg, #f2c9a5, #d99b72);
+    box-shadow:inset -4px -5px 0 rgba(120, 65, 35, .14);
+    transform:translateX(-50%);
+    z-index:3;
+  }
+  .person-head::before {
+    content:"";
+    position:absolute;
+    left:-4%;
+    right:-4%;
+    top:-10%;
+    height:48%;
+    border-radius:50% 50% 40% 40%;
+    background:#263241;
+  }
+  .person-neck {
+    position:absolute;
+    left:50%;
+    top:20%;
+    width:15%;
+    height:10%;
+    border-radius:0 0 6px 6px;
+    background:#d99b72;
+    transform:translateX(-50%);
+    z-index:2;
+  }
+  .person-body {
+    position:absolute;
+    left:50%;
+    top:27%;
+    width:52%;
+    height:35%;
+    border-radius:16px 16px 10px 10px;
+    background:linear-gradient(160deg, #f97316 0%, #dc2626 68%, #991b1b 100%);
+    box-shadow:inset 6px 0 0 rgba(255,255,255,.18), inset -5px -7px 0 rgba(88, 28, 21, .2);
+    transform:translateX(-50%) skewX(-3deg);
+    z-index:2;
+  }
+  .person-arm {
+    position:absolute;
+    top:31%;
+    width:12%;
+    height:34%;
+    border-radius:999px;
+    background:linear-gradient(180deg, #f2c9a5, #d99b72);
+    z-index:1;
+  }
+  .person-arm.left {
+    left:12%;
+    transform:rotate(13deg);
+  }
+  .person-arm.right {
+    right:12%;
+    transform:rotate(-12deg);
+  }
+  .person-leg {
+    position:absolute;
+    top:58%;
+    width:15%;
+    height:35%;
+    border-radius:999px 999px 5px 5px;
+    background:linear-gradient(180deg, #1d4ed8, #172554);
+    z-index:1;
+  }
+  .person-leg.left {
+    left:31%;
+    transform:rotate(3deg);
+  }
+  .person-leg.right {
+    right:31%;
+    transform:rotate(-3deg);
+  }
+  .person-shoe {
+    position:absolute;
+    bottom:1%;
+    width:27%;
+    height:7%;
+    border-radius:999px;
+    background:#1f2937;
+    z-index:2;
+  }
+  .person-shoe.left {
+    left:22%;
+  }
+  .person-shoe.right {
+    right:20%;
+  }
+  .lamp {
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:96px;
+    height:184px;
+  }
+  .lamp-shade {
+    width:74px;
+    height:58px;
+    margin:0 auto;
+    clip-path:polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+    background:#4b6370;
+    transition:background .25s ease, filter .25s ease;
+  }
+  #node-light.on .lamp-shade {
+    background:#fde047;
+    filter:drop-shadow(0 0 28px rgba(253,224,71,.85));
+  }
+  .lamp-post {
+    width:8px;
+    height:104px;
+    margin:0 auto;
+    background:#647681;
+  }
+  .lamp-base {
+    width:70px;
+    height:16px;
+    margin:0 auto;
+    border-radius:50%;
+    background:#4b6370;
+  }
+  .speaker {
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:78px;
+    height:116px;
+    border-radius:9px;
+    border:2px solid #ffd166;
+    background:linear-gradient(180deg, #ff7a1a 0%, #e55300 55%, #9f2d00 100%);
+    color:#fff;
+    text-align:center;
+    padding-top:11px;
+    font-size:12px;
+    font-weight:800;
+    box-shadow:0 15px 28px rgba(159, 45, 0, .34), inset 0 1px 0 rgba(255,255,255,.28);
+  }
+  .speaker::before, .speaker::after {
+    content:"";
+    display:block;
+    margin:0 auto 12px;
+    border-radius:50%;
+    background:#1a2334;
+  }
+  .speaker::before {
+    width:18px;
+    height:18px;
+  }
+  .speaker::after {
+    width:46px;
+    height:46px;
+    border:8px solid #ffd166;
+    box-shadow:inset 0 0 0 4px #7c2d12;
+  }
+  #node-speaker.on .speaker {
+    box-shadow:0 0 0 4px rgba(255, 209, 102, .34), 0 20px 34px rgba(159, 45, 0, .38);
+  }
+  .device-node {
+    position:absolute;
+    z-index:3;
+    pointer-events:none;
+  }
+  .device-node.selected .selection-ring {
+    position:absolute;
+    inset:-12px;
+    border:3px dashed var(--teal);
+    border-radius:12px;
+    z-index:9;
+  }
+  #node-tv { left:calc(50% + 0.5cm); top:7%; width:clamp(235px, 22vw, 320px); height:clamp(160px, 26vh, 214px); transform:translateX(-50%); z-index:5; }
+  #node-light { right:clamp(30px, 4.2vw, 64px); bottom:clamp(158px, 25vh, 230px); width:96px; height:184px; z-index:4; }
+  #node-curtain { left:clamp(18px, 2.4vw, 36px); top:clamp(18px, 3vh, 34px); width:clamp(180px, 17vw, 260px); height:clamp(196px, 32vh, 282px); z-index:3; }
+  #node-speaker { right:clamp(44px, 5vw, 78px); bottom:16px; width:78px; height:116px; z-index:7; }
+  #node-system {
+    left:50%;
+    top:45%;
+    width:190px;
+    transform:translateX(-50%);
+    z-index:8;
+  }
+  .system-badge {
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    transform:translateY(clamp(92px, 17vh, 142px));
+  }
+  .system-badge span {
+    padding:6px 10px;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    box-shadow:0 6px 18px rgba(15,23,42,.12);
+  }
+  #node-system.on .system-badge span:first-child {
+    color:#fff;
+    background:var(--teal);
+    border-color:var(--teal);
+  }
+
+  .side {
+    min-width:0;
+    max-height:calc(100dvh - 12px);
+    padding:10px;
+    overflow:auto;
+  }
+  .side-section {
+    padding-bottom:7px;
+    margin-bottom:7px;
+    border-bottom:1px solid var(--line);
+  }
+  .side-title {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    font-weight:800;
+    margin-bottom:7px;
+    font-family:var(--font-display);
+  }
+  .side-title span {
+    font-size:20px;
+    line-height:1.1;
+  }
+  .side-title small {
+    color:var(--muted);
+    font-weight:600;
+    font-family:var(--font-ui);
+  }
+  .connect-grid {
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 122px;
+    gap:6px;
+    align-items:end;
+  }
+  label {
+    display:block;
+    margin-bottom:4px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:600;
+  }
+  select, input, button {
+    width:100%;
+    min-height:31px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#fff;
+    color:var(--text);
+    padding:5px 7px;
+    font-size:12px;
+    font-family:var(--font-ui);
+  }
+  button {
+    cursor:pointer;
+    border-color:var(--teal);
+    background:var(--teal);
+    color:#fff;
+    font-weight:800;
+  }
+  button.secondary {
+    color:var(--teal);
+    background:#fff;
+  }
+  .model-picker {
+    position:relative;
+  }
+  .model-button {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    color:var(--teal-dark);
+    background:#ecfffb;
+    border-color:#8dd8cf;
+    white-space:nowrap;
+  }
+  .model-button::after {
+    content:"";
+    width:7px;
+    height:7px;
+    border-right:2px solid currentColor;
+    border-bottom:2px solid currentColor;
+    transform:rotate(45deg) translateY(-2px);
+  }
+  .model-menu {
+    position:absolute;
+    top:calc(100% + 6px);
+    right:0;
+    z-index:30;
+    width:154px;
+    display:none;
+    gap:4px;
+    padding:6px;
+    border:1px solid #c9d7df;
+    border-radius:8px;
+    background:#fff;
+    box-shadow:0 16px 38px rgba(15, 23, 42, .18);
+  }
+  .model-menu.is-open {
+    display:grid;
+  }
+  .model-option {
+    min-height:30px;
+    border-color:transparent;
+    background:#fff;
+    color:var(--text);
+    text-align:left;
+    font-weight:800;
+  }
+  .model-option:hover:not(:disabled) {
+    background:#f1f5f9;
+  }
+  .model-option.active {
+    color:var(--teal-dark);
+    background:#e6fffb;
+  }
+  button.tts-toggle {
+    min-height:24px;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:11px;
+    white-space:nowrap;
+  }
+  button:disabled {
+    opacity:.55;
+    cursor:not-allowed;
+  }
+  .inline-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+    margin-top:6px;
+  }
+  .checkbox-row {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+    color:var(--muted);
+    font-size:11px;
+  }
+  .connect-grid + .inline-row,
+  .checkbox-row {
+    display:none;
+  }
+  .checkbox-row input { width:auto; min-height:auto; }
+  .status {
+    min-height:18px;
+    margin-top:6px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .status.ok { color:var(--green); }
+  .status.err { color:var(--red); }
+  .prediction-card {
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:6px;
+    background:#f8fafc;
+  }
+  .pred-main {
+    display:flex;
+    justify-content:space-between;
+    align-items:start;
+    gap:12px;
+  }
+  .pred-label {
+    font-size:19px;
+    font-weight:900;
+  }
+  .pred-name {
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.35;
+    margin-top:2px;
+  }
+  .action-line {
+    margin-top:6px;
+    padding:6px;
+    border-radius:6px;
+    border-left:4px solid var(--teal);
+    background:#eefdfb;
+    color:#0f766e;
+    font-size:11px;
+    font-weight:700;
+  }
+  .action-line.rejected {
+    border-color:#ef4444;
+    background:#fff1f2;
+    color:#9f1239;
+  }
+  .topk {
+    display:none;
+  }
+  .topk span {
+    display:inline-block;
+    margin:7px 6px 0 0;
+    padding:3px 7px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-size:11px;
+    background:#fff;
+  }
+  .toast-stack {
+    position:fixed;
+    left:16px;
+    bottom:16px;
+    z-index:20;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    width:min(360px, calc(100vw - 32px));
+    pointer-events:none;
+  }
+  .toast {
+    padding:10px 12px;
+    border-radius:8px;
+    border-left:4px solid var(--teal);
+    background:#0f172a;
+    color:#fff;
+    box-shadow:0 16px 34px rgba(15, 23, 42, .22);
+    font-size:12px;
+    line-height:1.35;
+    animation:toast-in .18s ease-out;
+  }
+  .toast strong {
+    display:block;
+    margin-bottom:2px;
+    font-size:11px;
+    color:#a7f3d0;
+  }
+  .toast.err {
+    border-left-color:var(--red);
+  }
+  .toast.err strong {
+    color:#fecdd3;
+  }
+  @keyframes toast-in {
+    from { transform:translateY(10px); opacity:0; }
+    to { transform:translateY(0); opacity:1; }
+  }
+  .chart-wrap {
+    position:relative;
+    margin-bottom:10px;
+    padding:8px;
+    border:1px solid #dce6ed;
+    border-radius:8px;
+    background:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .chart-tools {
+    position:absolute;
+    top:8px;
+    right:8px;
+    z-index:6;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .chart-tool {
+    width:25px;
+    height:24px;
+    min-height:24px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border-radius:6px;
+    border-color:#c7d8e2;
+    background:rgba(255,255,255,.92);
+    color:#0b6f69;
+    box-shadow:0 2px 8px rgba(15,23,42,.08);
+  }
+  .chart-tool:hover:not(:disabled) {
+    border-color:#8dd8cf;
+    background:#ecfffb;
+  }
+  .chart-tool:disabled {
+    opacity:.38;
+    cursor:not-allowed;
+  }
+  .chart-tool svg {
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .stream-canvas {
+    width:100%;
+    height:clamp(310px, 46vh, 430px);
+    display:block;
+    border:0;
+    border-radius:6px;
+    background:#fff;
+  }
+  .axis-label {
+    position:absolute;
+    left:19px;
+    color:#102033;
+    font-size:14px;
+    font-weight:400;
+    line-height:1;
+    letter-spacing:0;
+    white-space:nowrap;
+    transform:translate(-50%, -50%) rotate(-90deg);
+    transform-origin:center;
+    text-rendering:geometricPrecision;
+    -webkit-font-smoothing:antialiased;
+    pointer-events:none;
+  }
+  .axis-label.accel { top:calc(25% + 0.5cm); }
+  .axis-label.gyro { top:calc(68% + 0.5cm); }
+  @media (max-height:760px) {
+    .app {
+      grid-template-columns:minmax(0, 3fr) minmax(350px, 2fr);
+      gap:5px;
+      padding:5px;
+    }
+    .stage {
+      grid-template-rows:50px 1fr;
+    }
+    .topbar {
+      padding:6px 11px;
+    }
+    h1 {
+      font-size:18px;
+    }
+    .subtitle {
+      font-size:10px;
+    }
+    .pill {
+      min-height:25px;
+      padding:4px 10px;
+      font-size:12px;
+    }
+    .side {
+      max-height:calc(100dvh - 10px);
+      padding:6px;
+    }
+    .side-section {
+      padding-bottom:6px;
+      margin-bottom:6px;
+    }
+    label, .status, .side-title small, .pred-name {
+      font-size:11px;
+    }
+    .side-title span {
+      font-size:18px;
+    }
+    select, input, button {
+      min-height:29px;
+      padding:4px 6px;
+      font-size:11px;
+    }
+    .pred-label {
+      font-size:18px;
+    }
+    .action-line {
+      margin-top:5px;
+      padding:5px;
+      font-size:10.5px;
+    }
+    .stream-canvas {
+      height:300px;
+    }
+    .legend {
+      margin-top:4px;
+    }
+  }
+  @media (max-width:1080px) {
+    body { overflow:auto; }
+    .app {
+      height:auto;
+      min-height:100vh;
+      grid-template-columns:1fr;
+    }
+    .stage {
+      min-height:680px;
+    }
+    .room { min-height:620px; }
+    .side {
+      max-height:none;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="stage">
+    <div class="topbar">
+      <div>
+        <h1>SmartHome Gesture Control</h1>
+        <div class="subtitle">Demo điều khiển phòng thông minh bằng cử chỉ tay từ ESP32 + MPU6050.</div>
+      </div>
+      <div class="top-actions">
+        <button id="tts-toggle" class="tts-toggle secondary" type="button">TTS: Bật</button>
+        <span id="selection-pill" class="pill teal">Selection</span>
+        <span id="selected-device-pill" class="pill">Chưa chọn thiết bị</span>
+      </div>
+    </div>
+
+    <div class="room">
+      <div id="node-curtain" class="device-node open on">
+        <div class="selection-ring"></div>
+        <div class="window"></div>
+        <div class="curtain-rod"></div>
+        <div class="curtain left"></div>
+        <div class="curtain right"></div>
+      </div>
+
+      <div id="node-tv" class="device-node">
+        <div class="selection-ring"></div>
+        <div class="tv-wrap">
+          <div class="tv-screen" id="tv-screen">TV OFF</div>
+          <div class="tv-stand"></div>
+        </div>
+      </div>
+
+      <div id="node-light" class="device-node">
+        <div class="selection-ring"></div>
+        <div class="lamp">
+          <div class="lamp-shade"></div>
+          <div class="lamp-post"></div>
+          <div class="lamp-base"></div>
+        </div>
+      </div>
+
+      <div class="room-person" aria-hidden="true">
+        <div class="person-head"></div>
+        <div class="person-neck"></div>
+        <div class="person-body"></div>
+        <div class="person-arm left"></div>
+        <div class="person-arm right"></div>
+        <div class="person-leg left"></div>
+        <div class="person-leg right"></div>
+        <div class="person-shoe left"></div>
+        <div class="person-shoe right"></div>
+      </div>
+
+      <div class="sofa"></div>
+
+      <div id="node-speaker" class="device-node">
+        <div class="selection-ring"></div>
+        <div class="speaker" id="speaker-box">Vol 30</div>
+      </div>
+
+      <div id="node-system" class="device-node">
+        <div class="system-badge">
+          <span id="system-state">Idle</span>
+          <span id="system-target">Target: TV</span>
+        </div>
+      </div>
+      <div class="floor-lines"></div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="side-section">
+      <div class="side-title">
+        <span>ESP32 + MPU6050</span>
+        <small id="model-info" hidden></small>
+      </div>
+      <div class="connect-grid">
+        <div>
+          <label>COM</label>
+          <select id="serial-select"></select>
+        </div>
+        <div class="model-picker">
+          <label>Model</label>
+          <button id="model-button" class="model-button secondary" type="button">Transformer</button>
+          <div id="model-menu" class="model-menu"></div>
+        </div>
+      </div>
+      <div class="inline-row">
+        <div>
+          <label>Cửa sổ</label>
+          <input id="window-s" type="number" min="2" max="8" step="0.5" value="4" />
+        </div>
+        <div>
+          <label>Dự đoán</label>
+          <input id="interval-s" type="number" min="3" max="4" step="0.5" value="3.5" />
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input id="calibrate" type="checkbox" />
+        <span>Calibrate gyro trước khi stream</span>
+      </div>
+      <div class="inline-row">
+        <button id="btn-connect">Connect</button>
+        <button id="btn-disconnect" class="secondary" disabled>Disconnect</button>
+      </div>
+      <div id="live-status" class="status"></div>
+    </div>
+
+    <div class="side-section">
+      <div class="chart-wrap">
+        <div class="chart-tools" aria-label="Chart tools">
+          <button id="btn-chart-shot" class="chart-tool" type="button" title="Capture chart" aria-label="Capture chart">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8h3l1.5-2h7L17 8h3v10H4z"></path>
+              <circle cx="12" cy="13" r="3.5"></circle>
+            </svg>
+          </button>
+          <button id="btn-chart-zoom-in" class="chart-tool" type="button" title="Zoom in" aria-label="Zoom in">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5"></circle>
+              <path d="M10.5 7.5v6"></path>
+              <path d="M7.5 10.5h6"></path>
+              <path d="M15.5 15.5 21 21"></path>
+            </svg>
+          </button>
+          <button id="btn-chart-zoom-out" class="chart-tool" type="button" title="Zoom out" aria-label="Zoom out">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5"></circle>
+              <path d="M7.5 10.5h6"></path>
+              <path d="M15.5 15.5 21 21"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="axis-label accel">Acceleration (m/s²)</div>
+        <div class="axis-label gyro">Angular Velocity (°/s)</div>
+        <canvas id="imu-chart" class="stream-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <div class="side-title"><span>Nhận diện cử chỉ</span><small id="sample-count">0 mẫu</small></div>
+      <div class="prediction-card">
+        <div class="pred-main">
+          <div>
+            <div id="pred-label" class="pred-label">-</div>
+            <div id="pred-name" class="pred-name">Đang chờ dữ liệu thiết bị thật</div>
+          </div>
+          <span id="pred-confidence" class="pill">0%</span>
+        </div>
+        <div id="topk" class="topk"></div>
+        <div id="action-line" class="action-line rejected">Chưa có hành động</div>
+      </div>
+    </div>
+
+    <div hidden>
+      <div class="side-title"><span>Lịch sử</span></div>
+    </div>
+  </aside>
+</div>
+<div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+const accelKeys = ['ax_g', 'ay_g', 'az_g'];
+const gyroKeys = ['gx_dps', 'gy_dps', 'gz_dps'];
+const colors = {
+  ax_g:'#ef4444', ay_g:'#16a34a', az_g:'#4f1dff',
+  gx_dps:'#f59e0b', gy_dps:'#7c00d9', gz_dps:'#b91c1c'
+};
+const modelLabels = { cnn:'CNN', lstm:'LSTM', transformer:'Transformer', random_forest:'Random Forest', rf:'Random Forest' };
+const chartFont = '"Segoe UI", Tahoma, Arial, sans-serif';
+const chartWindowSeconds = 15;
+const accelData = [];
+const gyroData = [];
+const maxPoints = 390;
+let socket = null;
+let drawPending = false;
+let chartZoomLevel = 0;
+const chartZoomMin = -5;
+const chartZoomMax = 3;
+let currentModel = 'cnn';
+const defaultDevices = {
+  tv: { power:false, channel:1, source:'HDMI1', voice_search:false },
+  speaker: { power:true, volume:30 },
+  light: { power:false, brightness:80 },
+  curtain: { open:true },
+  system: { state:'Idle', active:false, selected_device:null }
+};
+const speechState = {
+  enabled: true,
+  supported: 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window,
+  voice: null,
+  lastText: '',
+  lastAt: 0
+};
+let lastNotificationKey = '';
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || JSON.stringify(data));
+  return data;
+}
+
+function setStatus(id, text, cls = '') {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `status ${cls}`.trim();
+}
+
+function modelLabel(name) {
+  return modelLabels[String(name || '').toLowerCase()] || String(name || '').toUpperCase();
+}
+
+function setModelButton(model, loading = false) {
+  currentModel = String(model || currentModel || 'cnn').toLowerCase();
+  const btn = document.getElementById('model-button');
+  btn.textContent = loading ? 'Đang đổi...' : modelLabel(currentModel);
+  btn.disabled = loading;
+}
+
+function closeModelMenu() {
+  document.getElementById('model-menu').classList.remove('is-open');
+}
+
+function renderModelMenu(models = []) {
+  const menu = document.getElementById('model-menu');
+  menu.textContent = '';
+  for (const item of models) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'model-option' + (item.active ? ' active' : '');
+    btn.textContent = modelLabel(item.name);
+    btn.disabled = !item.available;
+    btn.onclick = () => selectModel(item.name);
+    menu.appendChild(btn);
+  }
+}
+
+function updateModelSummary(data) {
+  const model = data.model || data.current || currentModel;
+  setModelButton(model);
+}
+
+async function loadModels() {
+  const data = await api('/models');
+  currentModel = data.current || currentModel;
+  renderModelMenu(data.models || []);
+  updateModelSummary(data);
+}
+
+async function selectModel(model) {
+  model = String(model || '').toLowerCase();
+  if (!model || model === currentModel) {
+    closeModelMenu();
+    return;
+  }
+  closeModelMenu();
+  if (socket) disconnectLive();
+  const previousModel = currentModel;
+  setModelButton(model, true);
+  setStatus('live-status', `Đang chuyển sang ${modelLabel(model)}...`, '');
+  try {
+    const data = await api(`/models/${encodeURIComponent(model)}`, { method:'POST' });
+    updateModelSummary(data);
+    await loadModels();
+    setStatus('live-status', `Đã chọn ${modelLabel(model)}.`, 'ok');
+  } catch (err) {
+    setModelButton(previousModel);
+    setStatus('live-status', err.message, 'err');
+  }
+}
+
+function pickVietnameseVoice() {
+  if (!speechState.supported) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const scoreVoice = (voice) => {
+    const name = String(voice.name || '').toLowerCase();
+    const lang = String(voice.lang || '').toLowerCase();
+    let score = 0;
+    if (lang === 'vi-vn') score += 120;
+    else if (lang.startsWith('vi')) score += 100;
+    if (/hoaimy|hoai my|vietnam|tiếng việt|tieng viet|vietnamese/.test(name)) score += 45;
+    if (/natural|online|google|microsoft/.test(name)) score += 20;
+    if (voice.localService) score += 5;
+    if (!lang.startsWith('vi') && !/vietnam|tiếng việt|tieng viet|vietnamese/.test(name)) score -= 100;
+    return score;
+  };
+  return [...voices].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0] || null;
+}
+
+function speak(text) {
+  if (!speechState.enabled || !speechState.supported || !text) return;
+  const spokenText = String(text).replace(/\s+/g, ' ').trim();
+  const now = Date.now();
+  if (spokenText === speechState.lastText && now - speechState.lastAt < 2500) return;
+  speechState.lastText = spokenText;
+  speechState.lastAt = now;
+
+  const utterance = new SpeechSynthesisUtterance(spokenText);
+  utterance.lang = 'vi-VN';
+  utterance.rate = 0.88;
+  utterance.pitch = 0.98;
+  utterance.volume = 1;
+  speechState.voice = speechState.voice || pickVietnameseVoice();
+  if (speechState.voice) utterance.voice = speechState.voice;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+}
+
+function setTtsEnabled(enabled, announce = true) {
+  speechState.enabled = Boolean(enabled);
+  const btn = document.getElementById('tts-toggle');
+  btn.textContent = speechState.enabled ? 'TTS: Bật' : 'TTS: Tắt';
+  btn.className = speechState.enabled ? 'tts-toggle' : 'tts-toggle secondary';
+  if (announce && speechState.enabled) speak('Đã bật thông báo giọng nói.');
+}
+
+function initTts() {
+  const btn = document.getElementById('tts-toggle');
+  if (!speechState.supported) {
+    btn.textContent = 'TTS: Không hỗ trợ';
+    btn.disabled = true;
+    return;
+  }
+  speechState.voice = pickVietnameseVoice();
+  window.speechSynthesis.onvoiceschanged = () => {
+    speechState.voice = pickVietnameseVoice();
+  };
+  btn.onclick = () => setTtsEnabled(!speechState.enabled);
+  setTtsEnabled(true, false);
+}
+
+function showToast(message, cls = '') {
+  if (!message) return;
+  const stack = document.getElementById('toast-stack');
+  const toast = document.createElement('div');
+  toast.className = `toast ${cls}`.trim();
+
+  const title = document.createElement('strong');
+  title.textContent = 'Thông báo';
+  const body = document.createElement('span');
+  body.textContent = message;
+
+  toast.appendChild(title);
+  toast.appendChild(body);
+  stack.appendChild(toast);
+  while (stack.children.length > 4) stack.firstElementChild.remove();
+  setTimeout(() => toast.remove(), 4200);
+}
+
+function actionMessage(action) {
+  if (!action || !action.accepted) return '';
+  if (action.message) return action.message;
+
+  switch (action.op) {
+    case 'system_start':
+      return 'HỆ THỐNG ĐÃ ĐƯỢC MỞ';
+    case 'system_stop':
+      return 'ĐÃ TẮT HỆ THỐNG';
+    case 'emergency_reset':
+      return 'RESET LẠI HỆ THỐNG';
+    case 'select_tv':
+      return 'ĐÃ CHỌN TV';
+    case 'select_speaker':
+      return 'ĐÃ CHỌN LOA';
+    case 'select_light':
+      return 'CHỌN ĐÈN';
+    case 'select_curtain':
+      return 'CHỌN RÈM';
+    case 'light_on':
+      return 'ĐÃ BẬT ĐÈN';
+    case 'light_off':
+      return 'ĐÃ TẮT ĐÈN';
+    case 'curtain_open':
+      return 'RÈM ĐÃ MỞ';
+    case 'curtain_close':
+      return 'RÈM ĐÃ ĐÓNG';
+    case 'speaker_volume_up':
+      return 'TĂNG ÂM LƯỢNG LOA';
+    case 'speaker_volume_down':
+      return 'GIẢM ÂM LƯỢNG LOA';
+    case 'tv_favorite':
+      return 'CHỌN KÊNH YÊU THÍCH';
+    case 'tv_channel_swing':
+      return 'ĐỔI KÊNH';
+    case 'tv_switch_source':
+      return 'CHỌN NGUỒN HDMI/TV';
+    case 'tv_channel_up':
+      return 'TĂNG KÊNH';
+    case 'tv_channel_down':
+      return 'GIẢM KÊNH';
+    case 'tv_voice_search':
+      return 'MỞ TÌM KIẾM BẰNG GIỌNG NÓI TRÊN YOUTUBE';
+    default:
+      if (String(action.op || '').startsWith('select_')) {
+        return `Đã chọn ${targetName(action.selected_device)} để điều khiển.`;
+      }
+      return action.op ? `Đã thực hiện lệnh ${action.op}.` : '';
+  }
+}
+
+function spokenActionMessage(action) {
+  if (!action || !action.accepted) return '';
+  switch (action.op) {
+    case 'system_start':
+      return 'Hệ thống đã được mở.';
+    case 'system_stop':
+      return 'Đã tắt hệ thống.';
+    case 'emergency_reset':
+      return 'Đã reset lại hệ thống.';
+    case 'select_tv':
+      return 'Đã chọn tivi.';
+    case 'select_speaker':
+      return 'Đã chọn loa.';
+    case 'select_light':
+      return 'Đã chọn đèn.';
+    case 'select_curtain':
+      return 'Đã chọn rèm.';
+    case 'light_on':
+      return 'Đã bật đèn.';
+    case 'light_off':
+      return 'Đã tắt đèn.';
+    case 'curtain_open':
+      return 'Rèm đã mở.';
+    case 'curtain_close':
+      return 'Rèm đã đóng.';
+    case 'speaker_volume_up':
+      return 'Đã tăng âm lượng loa.';
+    case 'speaker_volume_down':
+      return 'Đã giảm âm lượng loa.';
+    case 'tv_channel_swing':
+    case 'tv_channel_up':
+      return 'Đã tăng kênh tivi.';
+    case 'tv_switch_source':
+      return 'Đã đổi nguồn tivi.';
+    case 'tv_channel_down':
+      return 'Đã giảm kênh tivi.';
+    case 'tv_voice_search':
+      return 'Đã mở tìm kiếm bằng giọng nói trên YouTube.';
+    default:
+      return actionMessage(action);
+  }
+}
+
+function notifyAction(action) {
+  const message = actionMessage(action);
+  if (!message) return;
+  const key = `${action.ts || ''}|${action.label || ''}|${action.op || ''}|${action.selected_device || ''}`;
+  if (key === lastNotificationKey) return;
+  lastNotificationKey = key;
+  showToast(message);
+  speak(spokenActionMessage(action) || message);
+}
+
+function resizeCanvas(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.floor(rect.width * ratio));
+  const height = Math.max(1, Math.floor(rect.height * ratio));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+  return { width, height, ratio };
+}
+
+function syncAxisLabels(canvas, accelPanel, gyroPanel, ratio) {
+  const placeLabel = (selector, panel) => {
+    const label = document.querySelector(selector);
+    if (!label) return;
+    label.style.top = `${canvas.offsetTop + (panel.y + panel.h / 2) / ratio}px`;
+  };
+  placeLabel('.axis-label.accel', accelPanel);
+  placeLabel('.axis-label.gyro', gyroPanel);
+}
+
+function visibleChartRows(rows) {
+  if (chartZoomLevel <= 0 || rows.length < 2) return rows;
+  const visibleCount = Math.max(45, Math.ceil(rows.length / (1 + chartZoomLevel * 0.45)));
+  return rows.slice(-visibleCount);
+}
+
+function niceNumber(value, round) {
+  if (!Number.isFinite(value) || value <= 0) return 1;
+  const exponent = Math.floor(Math.log10(value));
+  const fraction = value / Math.pow(10, exponent);
+  let niceFraction;
+  if (round) {
+    if (fraction < 1.5) niceFraction = 1;
+    else if (fraction < 3) niceFraction = 2;
+    else if (fraction < 7) niceFraction = 5;
+    else niceFraction = 10;
+  } else if (fraction <= 1) niceFraction = 1;
+  else if (fraction <= 2) niceFraction = 2;
+  else if (fraction <= 5) niceFraction = 5;
+  else niceFraction = 10;
+  return niceFraction * Math.pow(10, exponent);
+}
+
+function chartRange(rows, keys, fallbackMin, fallbackMax) {
+  let min = fallbackMin;
+  let max = fallbackMax;
+  let found = false;
+
+  rows.forEach(row => {
+    keys.forEach(series => {
+      const value = Number(row[series.key]) * series.scale;
+      if (!Number.isFinite(value)) return;
+      found = true;
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    });
+  });
+
+  if (!found) return { min:fallbackMin, max:fallbackMax, ticks:[] };
+  if (min === max) {
+    min -= 1;
+    max += 1;
+  }
+
+  const zoomOut = Math.max(0, -chartZoomLevel);
+  const padding = (max - min) * (0.12 + zoomOut * 0.16);
+  const paddedMin = min - padding;
+  const paddedMax = max + padding;
+  const step = niceNumber((paddedMax - paddedMin) / 4, true);
+  const niceMin = Math.floor(paddedMin / step) * step;
+  const niceMax = Math.ceil(paddedMax / step) * step;
+  const ticks = [];
+
+  for (let value = niceMax; value >= niceMin - step * 0.5; value -= step) {
+    ticks.push(value);
+  }
+  return { min:niceMin, max:niceMax, ticks };
+}
+
+function formatTick(value) {
+  const abs = Math.abs(value);
+  if (abs >= 10) return Math.round(value).toString();
+  if (abs >= 1) return Number(value.toFixed(1)).toString();
+  return Number(value.toFixed(2)).toString();
+}
+
+function drawCombinedChart(canvas, rows) {
+  const { width, height, ratio } = resizeCanvas(canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+
+  const layoutZoom = Math.max(chartZoomMin, Math.min(chartZoomMax, chartZoomLevel));
+  const left = 54 * ratio;
+  const right = 54 * ratio;
+  const top = 45 * ratio;
+  const bottom = Math.max(8, 25 - Math.max(0, layoutZoom) * 5) * ratio;
+  const gap = Math.max(20, 48 - layoutZoom * 9) * ratio;
+  const plotW = Math.max(60 * ratio, width - left - right);
+  const plotH = Math.max(70 * ratio, (height - top - bottom - gap) / 2);
+  const rowsView = visibleChartRows(rows);
+  const accelSeries = [
+    { key:'ax_g', label:'Ax', color:colors.ax_g, scale:9.80665 },
+    { key:'ay_g', label:'Ay', color:colors.ay_g, scale:9.80665 },
+    { key:'az_g', label:'Az', color:colors.az_g, scale:9.80665 },
+  ];
+  const gyroSeries = [
+    { key:'gx_dps', label:'Gx', color:colors.gx_dps, scale:1 },
+    { key:'gy_dps', label:'Gy', color:colors.gy_dps, scale:1 },
+    { key:'gz_dps', label:'Gz', color:colors.gz_dps, scale:1 },
+  ];
+  const accelRange = chartRange(rowsView, accelSeries, -2, 12);
+  const gyroRange = chartRange(rowsView, gyroSeries, -40, 40);
+  const accelPanel = {
+    x: left,
+    y: top,
+    w: plotW,
+    h: plotH,
+    title: 'Accelerometer Data',
+    min: accelRange.min,
+    max: accelRange.max,
+    ticks: accelRange.ticks.length ? accelRange.ticks : [10, 5, 0],
+    keys: accelSeries,
+  };
+  const gyroPanel = {
+    x: left,
+    y: top + plotH + gap,
+    w: plotW,
+    h: plotH,
+    title: 'Gyroscope Data',
+    min: gyroRange.min,
+    max: gyroRange.max,
+    ticks: gyroRange.ticks.length ? gyroRange.ticks : [20, 0, -20, -40],
+    keys: gyroSeries,
+  };
+  syncAxisLabels(canvas, accelPanel, gyroPanel, ratio);
+
+  if (rowsView.length < 2) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = `${12 * ratio}px ${chartFont}`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Waiting for IMU data...', width / 2, height / 2);
+    drawPanelFrame(ctx, accelPanel, ratio, false);
+    drawPanelFrame(ctx, gyroPanel, ratio, false);
+    drawLegend(ctx, [...accelPanel.keys, ...gyroPanel.keys], width - 46 * ratio, top + 26 * ratio, ratio);
+    return;
+  }
+
+  drawPanel(ctx, accelPanel, rowsView, ratio);
+  drawPanel(ctx, gyroPanel, rowsView, ratio);
+  drawLegend(ctx, [...accelPanel.keys, ...gyroPanel.keys], width - 46 * ratio, top + 26 * ratio, ratio);
+
+  ctx.fillStyle = '#34495e';
+  ctx.font = `${13 * ratio}px ${chartFont}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Time (s)', left + plotW / 2, height - 12 * ratio);
+}
+
+function drawPanelFrame(ctx, panel, ratio, showXTicks = true) {
+  ctx.save();
+  ctx.font = `${10.5 * ratio}px ${chartFont}`;
+  ctx.lineWidth = 1 * ratio;
+  ctx.textBaseline = 'middle';
+
+  const yTicks = panel.ticks || [panel.max, (panel.max + panel.min) / 2, panel.min];
+  for (const value of yTicks) {
+    const y = panel.y + panel.h - ((value - panel.min) / (panel.max - panel.min)) * panel.h;
+    ctx.strokeStyle = '#dfe7ef';
+    ctx.beginPath();
+    ctx.moveTo(panel.x, y);
+    ctx.lineTo(panel.x + panel.w, y);
+    ctx.stroke();
+    ctx.fillStyle = '#34495e';
+    ctx.textAlign = 'right';
+    ctx.fillText(formatTick(value), panel.x - 7 * ratio, y);
+  }
+
+  for (let i = 0; i <= 5; i++) {
+    const x = panel.x + (panel.w * i / 5);
+    ctx.strokeStyle = '#e6edf4';
+    ctx.beginPath();
+    ctx.moveTo(x, panel.y);
+    ctx.lineTo(x, panel.y + panel.h);
+    ctx.stroke();
+    if (showXTicks) {
+      ctx.fillStyle = '#34495e';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(String(i * chartWindowSeconds / 5), x, panel.y + panel.h + 5 * ratio);
+    }
+  }
+
+  ctx.strokeStyle = '#d4dde7';
+  ctx.beginPath();
+  ctx.moveTo(panel.x, panel.y);
+  ctx.lineTo(panel.x, panel.y + panel.h);
+  ctx.lineTo(panel.x + panel.w, panel.y + panel.h);
+  ctx.stroke();
+
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = `${14 * ratio}px ${chartFont}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(panel.title, panel.x + panel.w / 2, panel.y - 5 * ratio);
+
+  ctx.restore();
+}
+
+function drawPanel(ctx, panel, rows, ratio) {
+  drawPanelFrame(ctx, panel, ratio, panel.title === 'Gyroscope Data');
+  const min = panel.min;
+  const max = panel.max;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(panel.x, panel.y, panel.w, panel.h);
+  ctx.clip();
+
+  for (const series of panel.keys) {
+    ctx.strokeStyle = series.color;
+    ctx.lineWidth = 1.9 * ratio;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    rows.forEach((row, index) => {
+      const raw = Number(row[series.key] || 0);
+      const value = raw * series.scale;
+      const x = panel.x + (panel.w * index / Math.max(rows.length - 1, 1));
+      const y = panel.y + panel.h - ((value - min) / (max - min)) * panel.h;
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawLegend(ctx, items, x, y, ratio) {
+  ctx.save();
+  ctx.font = `${10.5 * ratio}px ${chartFont}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  items.forEach((item, index) => {
+    const rowY = y + index * 17 * ratio;
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = 2.2 * ratio;
+    ctx.beginPath();
+    ctx.moveTo(x, rowY);
+    ctx.lineTo(x + 15 * ratio, rowY);
+    ctx.stroke();
+    ctx.fillStyle = '#34495e';
+    ctx.fillText(item.label, x + 20 * ratio, rowY);
+  });
+
+  ctx.restore();
+}
+
+function scheduleDraw() {
+  if (drawPending) return;
+  drawPending = true;
+  requestAnimationFrame(() => {
+    drawPending = false;
+    drawCombinedChart(document.getElementById('imu-chart'), accelData);
+  });
+}
+
+function applyChartZoom() {
+  const canvas = document.getElementById('imu-chart');
+  canvas.style.height = '';
+
+  document.getElementById('btn-chart-zoom-in').disabled = chartZoomLevel >= chartZoomMax;
+  document.getElementById('btn-chart-zoom-out').disabled = chartZoomLevel <= chartZoomMin;
+  scheduleDraw();
+}
+
+function zoomChart(delta) {
+  chartZoomLevel = Math.max(chartZoomMin, Math.min(chartZoomMax, chartZoomLevel + delta));
+  applyChartZoom();
+}
+
+function drawExportAxisLabel(ctx, text, x, y, ratio) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#102033';
+  ctx.font = `${14 * ratio}px ${chartFont}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 0, 0);
+  ctx.restore();
+}
+
+function captureChart() {
+  const canvas = document.getElementById('imu-chart');
+  drawCombinedChart(canvas, accelData);
+
+  const ratio = canvas.width / Math.max(canvas.getBoundingClientRect().width, 1);
+  const output = document.createElement('canvas');
+  output.width = canvas.width;
+  output.height = canvas.height;
+
+  const ctx = output.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, output.width, output.height);
+  ctx.drawImage(canvas, 0, 0);
+
+  const labelY = (selector, fallback) => {
+    const label = document.querySelector(selector);
+    const top = label ? parseFloat(label.style.top) : NaN;
+    if (!Number.isFinite(top)) return output.height * fallback;
+    return Math.max(0, Math.min(output.height, (top - canvas.offsetTop) * ratio));
+  };
+  drawExportAxisLabel(ctx, 'Acceleration (m/s²)', 19 * ratio, labelY('.axis-label.accel', 0.25), ratio);
+  drawExportAxisLabel(ctx, 'Angular Velocity (°/s)', 19 * ratio, labelY('.axis-label.gyro', 0.68), ratio);
+
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const link = document.createElement('a');
+  link.download = `imu-chart-${stamp}.png`;
+  link.href = output.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  showToast('Da chup bieu do.');
+}
+
+function pushSample(sample, count) {
+  accelData.push(sample);
+  gyroData.push(sample);
+  while (accelData.length > maxPoints) accelData.shift();
+  while (gyroData.length > maxPoints) gyroData.shift();
+  document.getElementById('sample-count').textContent = `${count || accelData.length} mẫu`;
+  scheduleDraw();
+}
+
+function targetName(device) {
+  const map = { tv:'Tivi', light:'Đèn', speaker:'Loa', curtain:'Rèm', none:'Nhiễu' };
+  return map[device] || 'Chưa chọn thiết bị';
+}
+
+function selectedClass(name, selected) {
+  return name === selected ? ' selected' : '';
+}
+
+function renderDevices(devices) {
+  const system = devices.system || {};
+  const selected = system.selected_device || null;
+  const active = Boolean(system.active);
+
+  document.getElementById('selection-pill').textContent = active ? 'Active' : 'Selection';
+  document.getElementById('selection-pill').className = active ? 'pill teal' : 'pill';
+  document.getElementById('selected-device-pill').textContent = active ? targetName(selected) : 'Chưa chọn thiết bị';
+
+  const tv = devices.tv || {};
+  const tvNode = document.getElementById('node-tv');
+  tvNode.className = `device-node${tv.power ? ' on' : ''}${selectedClass('tv', selected)}`;
+  document.getElementById('tv-screen').textContent = tv.power ? (tv.voice_search ? 'VOICE SEARCH' : `TV CH ${tv.channel}`) : 'TV OFF';
+
+  const lightNode = document.getElementById('node-light');
+  const light = devices.light || {};
+  lightNode.className = `device-node${light.power ? ' on' : ''}${selectedClass('light', selected)}`;
+
+  const curtainNode = document.getElementById('node-curtain');
+  const curtain = devices.curtain || {};
+  curtainNode.className = `device-node${curtain.open ? ' open on' : ''}${selectedClass('curtain', selected)}`;
+
+  const speakerNode = document.getElementById('node-speaker');
+  const speaker = devices.speaker || {};
+  speakerNode.className = `device-node${speaker.power ? ' on' : ''}${selectedClass('speaker', selected)}`;
+  document.getElementById('speaker-box').textContent = `Vol ${speaker.volume || 0}`;
+
+  const systemNode = document.getElementById('node-system');
+  systemNode.className = 'device-node' + (active ? ' on' : '');
+  document.getElementById('system-state').textContent = active ? 'ACTIVE' : (system.state || 'Idle');
+  document.getElementById('system-target').textContent = `Target: ${active ? targetName(selected) : '--'}`;
+}
+
+function renderPrediction(payload) {
+  const p = payload.prediction || {};
+  const action = payload.action || {};
+  const confidence = Number(p.confidence || 0);
+  document.getElementById('pred-label').textContent = p.label || '-';
+  document.getElementById('pred-confidence').textContent = `${(confidence * 100).toFixed(1)}%`;
+  const actionName = action.op && action.op !== 'noop' ? action.op : (p.name || '');
+  document.getElementById('pred-name').textContent =
+    `${actionName || '-'} | ${payload.received_samples || p.input_samples || 0}->${payload.target_len || p.target_len || 0} mẫu`;
+  document.getElementById('topk').innerHTML = (p.top_k || [])
+    .map(item => `<span>${item.label} ${((item.confidence || 0) * 100).toFixed(1)}%</span>`)
+    .join('');
+
+  const line = document.getElementById('action-line');
+  const expected = action.expected_label ? ` | chờ ${action.expected_label}` : '';
+  const actionTarget = action.selected_device || 'tv';
+  line.textContent = `[ ${action.op || 'noop'} | target ${targetName(actionTarget)}${expected} | ${action.accepted ? 'accepted' : 'rejected'} ]`;
+  line.className = 'action-line' + (action.accepted ? '' : ' rejected');
+  notifyAction(action);
+
+  if (payload.devices) renderDevices(payload.devices);
+}
+
+async function refreshDevices() {
+  const data = await api('/devices');
+  renderDevices(data.devices);
+}
+
+let serialPortsLoading = false;
+
+async function loadSerialPorts() {
+  if (serialPortsLoading) return;
+  serialPortsLoading = true;
+  const select = document.getElementById('serial-select');
+  const previous = select.value;
+  select.textContent = '';
+  try {
+    let data;
+    try {
+      data = await api('/serial/ports');
+    } catch (err) {
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = 'Không thấy COM';
+      select.appendChild(blank);
+      return;
+    }
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = data.pyserial_available ? 'Chọn COM' : 'Thiếu pyserial';
+    select.appendChild(blank);
+    const devices = [];
+    for (const port of data.ports) {
+      const opt = document.createElement('option');
+      opt.value = port.device;
+      opt.textContent = `${port.device} - ${port.description}`;
+      select.appendChild(opt);
+      devices.push(port.device);
+    }
+    if (previous && devices.includes(previous)) {
+      select.value = previous;
+    } else if (devices.length) {
+      select.value = devices[0];
+    }
+  } finally {
+    serialPortsLoading = false;
+  }
+}
+
+function wsUrl(path) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${location.host}${path}`;
+}
+
+function connectLive() {
+  const port = document.getElementById('serial-select').value.trim();
+  if (!port) {
+    setStatus('live-status', 'Chọn COM trước.', 'err');
+    return;
+  }
+  const query = new URLSearchParams({
+    port,
+    baud:'115200',
+    window_s:document.getElementById('window-s').value || '4',
+    predict_interval_s:document.getElementById('interval-s').value || '3.5',
+    capture_s:document.getElementById('interval-s').value || '3.5',
+    top_k:'5',
+    confidence:'0.50',
+    calibrate:document.getElementById('calibrate').checked ? 'true' : 'false'
+  });
+  socket = new WebSocket(wsUrl(`/ws/serial?${query.toString()}`));
+  document.getElementById('btn-connect').disabled = true;
+  document.getElementById('btn-disconnect').disabled = false;
+  setStatus('live-status', 'Đang kết nối...', '');
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === 'sample') {
+      pushSample(msg.sample, msg.buffer_samples);
+      setStatus('live-status', `Đang stream ${port} | buffer ${msg.buffer_samples} mẫu`, 'ok');
+    } else if (msg.type === 'prediction') {
+      renderPrediction(msg);
+      refreshDevices();
+    } else if (msg.type === 'status') {
+      setStatus('live-status', msg.message, 'ok');
+    } else if (msg.type === 'error') {
+      setStatus('live-status', msg.message, 'err');
+    }
+  };
+  socket.onclose = () => {
+    document.getElementById('btn-connect').disabled = false;
+    document.getElementById('btn-disconnect').disabled = true;
+    setStatus('live-status', 'Đã ngắt kết nối.', '');
+    socket = null;
+  };
+  socket.onerror = () => {
+    setStatus('live-status', 'Lỗi WebSocket.', 'err');
+  };
+}
+
+function disconnectLive() {
+  if (socket) socket.close();
+}
+
+async function uploadCsv() {
+  const file = document.getElementById('csv-file').files[0];
+  if (!file) {
+    setStatus('csv-status', 'Chọn file CSV trước.', 'err');
+    return;
+  }
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    setStatus('csv-status', 'Đang dự đoán...', '');
+    const data = await api('/predict/csv', { method:'POST', body:form });
+    renderPrediction(data);
+    await refreshDevices();
+    setStatus('csv-status', 'Xong.', 'ok');
+  } catch (err) {
+    setStatus('csv-status', err.message, 'err');
+  }
+}
+
+async function init() {
+  initTts();
+  renderDevices(defaultDevices);
+  scheduleDraw();
+  try {
+    const health = await api('/health');
+    updateModelSummary(health);
+    try {
+      await loadModels();
+    } catch (err) {
+      renderModelMenu([{ name:health.model || currentModel, available:true, active:true }]);
+    }
+    await loadSerialPorts();
+    await refreshDevices();
+  } catch (err) {
+    setStatus('live-status', 'Chạy G:\\DOAN2\\demo\\run_demo.ps1 rồi mở lại đúng URL script in ra.', 'err');
+    await loadSerialPorts();
+  }
+}
+
+document.getElementById('model-button').onclick = (event) => {
+  event.stopPropagation();
+  document.getElementById('model-menu').classList.toggle('is-open');
+};
+document.addEventListener('click', closeModelMenu);
+document.getElementById('btn-connect').onclick = connectLive;
+document.getElementById('btn-disconnect').onclick = disconnectLive;
+document.getElementById('btn-chart-shot').onclick = captureChart;
+document.getElementById('btn-chart-zoom-in').onclick = () => zoomChart(1);
+document.getElementById('btn-chart-zoom-out').onclick = () => zoomChart(-1);
+document.getElementById('serial-select').addEventListener('focus', () => {
+  loadSerialPorts().catch(() => {});
+});
+document.getElementById('serial-select').addEventListener('pointerdown', () => {
+  loadSerialPorts().catch(() => {});
+});
+window.addEventListener('resize', applyChartZoom);
+
+applyChartZoom();
+init();
+setInterval(refreshDevices, 2000);
+setInterval(() => {
+  const select = document.getElementById('serial-select');
+  if (!socket && !select.value) {
+    loadSerialPorts().catch(() => {});
+  }
+}, 3000);
+</script>
+</body>
+</html>

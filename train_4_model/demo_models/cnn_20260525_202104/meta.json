@@ -1,0 +1,11 @@
+{
+  "val_accuracy": 0.9832506203473945,
+  "epochs_trained": 108,
+  "created_at": "2026-05-25T18:47:04",
+  "run_dir": "/content/Do_an/training/results_cnn_200epoch/run_20260525_181234",
+  "test_accuracy": 0.9678756476683937,
+  "model_name": "cnn",
+  "num_classes": 20,
+  "target_len": 201,
+  "params": 55700
+}

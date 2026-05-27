@@ -1,0 +1,26 @@
+[
+  {
+    "model": "cnn",
+    "val_acc": 0.9832506203473945,
+    "source": "/content/Do_an/training/results_cnn_200epoch/run_20260525_181234",
+    "dest": "/content/Do_an/demo/models/cnn_20260525_202104"
+  },
+  {
+    "model": "lstm",
+    "val_acc": 0.9975186104218362,
+    "source": "/content/Do_an/training/results_lstm_200epoch/run_20260525_184954",
+    "dest": "/content/Do_an/demo/models/lstm_20260525_202104"
+  },
+  {
+    "model": "transformer",
+    "val_acc": 0.999379652605459,
+    "source": "/content/Do_an/training/results_transformer_200epoch/run_20260525_192353",
+    "dest": "/content/Do_an/demo/models/transformer_20260525_202104"
+  },
+  {
+    "model": "rf",
+    "val_acc": 0.999379652605459,
+    "source": "/content/Do_an/training/results_rf/run_20260525_201616",
+    "dest": "/content/Do_an/demo/models/rf_20260525_202104"
+  }
+]
