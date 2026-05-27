@@ -14,6 +14,8 @@ build/
 # ── Model checkpoints lớn (>50 MB) ────────────────────────
 gaformer/checkpoints/gaformer_20260525_113523/best.pt
 gaformer/checkpoints/comparison/*.pt
+train_4_model/demo_models/**/*.joblib
+*.joblib
 
 # ── Dữ liệu (quá lớn cho GitHub — xem README để download) ─
 data_collection/data/
