@@ -16,8 +16,6 @@ Cảm biến IMU  ──►  Tiền xử lý  ──►  Mô hình DL  ──►
 (MPU6050+ESP32)    (50Hz, 4s)       (20 lớp)        (TV / Loa / Đèn / Rèm)
 ```
 
-![Kiến trúc hệ thống](images/Kien_truc_he_thong.png)
-
 ---
 
 ## Bộ dữ liệu — SHG_Dataset
@@ -57,13 +55,11 @@ Cảm biến IMU  ──►  Tiền xử lý  ──►  Mô hình DL  ──►
 
 | Mô hình | Accuracy | F1-score | Params | Inference |
 |---|---|---|---|---|
-| CNN1D | 98.95% | 98.93% | 213K | 0.47 ms |
-| CNN-BiLSTM | 99.70% | 99.67% | 221K | 1.19 ms |
-| **Transformer** ★ | **99.85%** | **99.83%** | 285K | 4.09 ms |
-| GAFormer | 99.62% | 99.62% | 20.5M | 4.11 ms |
-| Random Forest | 100% | 100% | — | 0.10 ms |
-| XGBoost | 100% | 100% | — | 0.10 ms |
-| SVM | 94.36% | 94.27% | — | — |
+| CNN1D | 96.79% | 96.75% | 56K | 1.21 ms |
+| CNN-BiLSTM | 99.64% | 99.62% | 641K | 3.35 ms |
+| **Transformer** ★ | **99.95%** | **99.94%** | 153K | 2.67 ms |
+| GAFormer | 99.62% | 99.64% | 20.5M | 4.11 ms |
+| Random Forest | 100% | 100% | — | — |
 
 > ★ **Transformer** được chọn cho hệ thống demo — cân bằng tốt nhất giữa độ chính xác, tốc độ và kích thước mô hình.
 
@@ -85,15 +81,18 @@ Do_an/
 │   │   ├── dataset.py        # SHGDataset + DataLoader
 │   │   ├── augmentation.py   # Jitter/Scale/TimeWarp/MagnitudeWarp/ChannelDropout
 │   │   ├── trainer.py        # Vòng lặp huấn luyện + Early Stopping
-│   │   └── models_rf.py      # Random Forest, SVM, XGBoost
-│   └── demo_models/          # Các model đã train (*.pt)
+│   │   ├── models_rf.py      # Random Forest (Late Fusion)
+│   │   └── features.py       # Trích xuất đặc trưng thống kê
+│   ├── demo_models/          # Các model đã train (*.pt)
+│   └── figures/              # Biểu đồ kết quả huấn luyện
 │
 ├── gaformer/                 # GAFormer — GADF + CoAtNet-light
 │   └── src/
 │       ├── model.py          # GAFormer architecture
 │       ├── gadf.py           # Gramian Angular Difference Field transform
 │       ├── train.py          # Training script
-│       └── baselines.py      # GASF/GADF + ResNet50/CoAtNet-0 baselines
+│       ├── baselines.py      # GASF/GADF + ResNet50/CoAtNet-0 baselines
+│       └── dataset.py        # Dataset cho GAFormer
 │
 ├── demo/                     # Demo điều khiển Smart Home
 │   ├── backend/
@@ -239,8 +238,6 @@ IDLE ──(G1)──► ACTIVE ──(G14)──► STOP_PENDING ──(timeout
 ---
 
 ## Tăng cường dữ liệu
-
-![Pipeline](images/pipeline_slide7.png)
 
 | Kỹ thuật | Mô tả |
 |---|---|
