@@ -1,0 +1,156 @@
+[
+  {
+    "class": "G1",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G2",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G3",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G4",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G5",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G6",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G7",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G8",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G9",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G10",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G11",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G12",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G13",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 70
+  },
+  {
+    "class": "G14",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "G15",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "N1",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "N2",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "N3",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "N4",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "N5",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 60
+  },
+  {
+    "class": "macro avg",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 1330
+  },
+  {
+    "class": "weighted avg",
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "support": 1330
+  }
+]

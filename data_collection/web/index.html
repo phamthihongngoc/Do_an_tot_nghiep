@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gesture Data Collection</title>
+  <style>
+    :root {
+      --bg: #f7f3ec;
+      --panel: #ffffff;
+      --panel-soft: #f5f7fa;
+      --ink: #17313a;
+      --muted: #69757d;
+      --line: #d8dde3;
+      --accent: #ff4758;
+      --accent-strong: #e51c33;
+      --blue: #2f67c7;
+      --green: #0d8a33;
+      --purple: #5c28ff;
+      --orange: #f39a23;
+      --violet: #8719b5;
+      --red-brown: #b32d34;
+      --shadow: 0 12px 28px rgba(31, 42, 55, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255, 241, 215, 0.85), transparent 34%),
+        radial-gradient(circle at 84% 5%, rgba(220, 242, 238, 0.8), transparent 32%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1700px, calc(100vw - 40px));
+      margin: 22px auto;
+    }
+
+    .title {
+      margin: 4px 0 18px;
+      text-align: center;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr) minmax(300px, 330px);
+      gap: 32px;
+      align-items: start;
+    }
+
+    .panel-title {
+      margin: 0 0 22px;
+      font-size: 28px;
+      line-height: 1.15;
+      color: #1f2937;
+    }
+
+    .control {
+      margin-bottom: 22px;
+    }
+
+    .control label,
+    .field-label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: #34424b;
+    }
+
+    .select,
+    .text-input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0 14px;
+      color: #26343d;
+      background: #edf1f5;
+      outline: none;
+    }
+
+    .text-input {
+      background: #fff;
+      border-color: var(--line);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .range-value {
+      min-width: 42px;
+      text-align: right;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .muted {
+      color: #8a949c;
+      font-size: 15px;
+    }
+
+    .serial-help {
+      display: none;
+      margin: -8px 0 16px;
+      padding: 10px 12px;
+      border: 1px solid #d8dde3;
+      border-radius: 8px;
+      color: #33424b;
+      background: rgba(255, 255, 255, 0.72);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .serial-help.is-visible {
+      display: block;
+    }
+
+    .button {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #273640;
+      background: #fff;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: #b9c3cd;
+    }
+
+    .button:disabled {
+      color: #a4abb2;
+      background: #f7f7f5;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent);
+      font-weight: 700;
+    }
+
+    .primary:hover:not(:disabled) {
+      border-color: var(--accent-strong);
+      background: var(--accent-strong);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .check-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 18px;
+      color: #34424b;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 28px 0;
+      background: #d8d2c8;
+    }
+
+    .env p {
+      margin: 8px 0 0;
+      font-size: 17px;
+    }
+
+    .main-meta {
+      display: grid;
+      gap: 8px;
+      margin: 4px 0 20px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .main-meta span {
+      font-weight: 600;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 29px;
+      line-height: 1.15;
+      color: #202b34;
+    }
+
+    .status {
+      min-height: 24px;
+      margin: 0 0 12px 20px;
+      color: var(--accent-strong);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .chart-card,
+    .summary-card,
+    .recent-table-wrap {
+      border: 1px solid #d9e0e6;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .chart-card {
+      position: relative;
+      padding: 18px 18px 10px;
+      border-color: transparent;
+      border-radius: 0;
+      background: #fff;
+    }
+
+    #signalChart {
+      display: block;
+      width: 100%;
+      height: 470px;
+    }
+
+    .legend {
+      position: absolute;
+      top: 116px;
+      right: 22px;
+      display: grid;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 16px;
+      color: #53606a;
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      height: 3px;
+      border-radius: 999px;
+    }
+
+    .chart-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      align-items: center;
+    }
+
+    .download {
+      width: auto;
+      min-width: 126px;
+      padding: 0 16px;
+    }
+
+    .progress {
+      flex: 1;
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e8edf1;
+    }
+
+    .progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 80ms linear;
+    }
+
+    .summary-card {
+      display: grid;
+      gap: 14px;
+      padding: 24px 22px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .metric-icon {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border-radius: 6px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 15px;
+    }
+
+    .metric-value {
+      color: #17252e;
+      font-weight: 800;
+    }
+
+    .side-section {
+      margin-top: 30px;
+    }
+
+    #countsChart {
+      display: block;
+      width: 100%;
+      height: 250px;
+      background: #fff;
+    }
+
+    .recent-table-wrap {
+      overflow: auto;
+      max-height: 270px;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 330px;
+      border-collapse: collapse;
+      color: #34414b;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid #e3e6ea;
+      padding: 10px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #8a949e;
+      font-weight: 700;
+      background: #f9fafb;
+    }
+
+    td:first-child,
+    th:first-child {
+      width: 42px;
+      text-align: right;
+      color: #88929b;
+    }
+
+    .preview {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      overflow: auto;
+      max-height: 150px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101820;
+      color: #e8edf1;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .preview.is-visible {
+      display: block;
+    }
+
+    @media (max-width: 1150px) {
+      .grid {
+        grid-template-columns: 280px 1fr;
+      }
+
+      .right {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .app {
+        width: min(100% - 24px, 760px);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .legend {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 10px;
+      }
+
+      #signalChart {
+        height: 430px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1 class="title">GESTURE DATA COLLECTION</h1>
+    <div class="grid">
+      <aside class="left">
+        <h2 class="panel-title">Control Panel</h2>
+
+        <div class="control">
+          <label for="source">Data source</label>
+          <select id="source" class="select">
+            <option value="mock">Computer (mock)</option>
+            <option value="serial">ESP32 Serial</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label for="gesture">Select gesture</label>
+          <select id="gesture" class="select"></select>
+        </div>
+
+        <div class="control">
+          <label for="subject">Subject ID</label>
+          <input id="subject" class="text-input" value="S01" maxlength="20">
+        </div>
+
+        <div class="control">
+          <label for="duration">Collection duration (seconds)</label>
+          <div class="range-row">
+            <input id="duration" type="range" min="1" max="10" value="4" step="0.5">
+            <span id="durationValue" class="range-value">4.0</span>
+          </div>
+        </div>
+
+        <div class="control">
+          <label for="baseline">Baseline before collection (seconds)</label>
+          <div class="range-row">
+            <input id="baseline" type="range" min="0" max="5" value="2" step="1">
+            <span id="baselineValue" class="range-value">2</span>
+          </div>
+        </div>
+
+        <p class="muted">Sampling rate: <strong>100Hz</strong></p>
+        <p id="serialHelp" class="serial-help">Khi hộp thoại của trình duyệt mở ra, bấm chọn dòng CP2102/USB Serial. Nếu đã cấp quyền trước đó, nút Connect sẽ tự mở lại cổng mà không hỏi lại.</p>
+
+        <div class="button-row">
+          <button id="connect" class="button" type="button">Connect</button>
+          <button id="ping" class="button" type="button">Ping</button>
+        </div>
+
+        <div class="control" style="margin-top: 14px;">
+          <button id="start" class="button primary" type="button">Start Collection</button>
+        </div>
+
+        <div class="control">
+          <button id="stop" class="button" type="button" disabled>Stop Collection</button>
+        </div>
+
+        <label class="check-row">
+          <input id="previewToggle" type="checkbox">
+          <span>Show current dataset preview</span>
+        </label>
+
+        <div class="divider"></div>
+
+        <div class="env">
+          <h3>Environment</h3>
+          <p id="environment">Computer (mock)</p>
+        </div>
+      </aside>
+
+      <section class="center">
+        <div class="main-meta">
+          <span>Current source: <strong id="currentSource">Computer (mock)</strong></span>
+          <span>Latest collected file: <strong id="latestFile">None</strong></span>
+        </div>
+
+        <h2 class="section-title">Signal charts</h2>
+        <p id="status" class="status">Gesture Data: waiting</p>
+
+        <div class="chart-card">
+          <canvas id="signalChart" width="1080" height="470"></canvas>
+          <div class="legend" aria-label="Chart legend">
+            <div class="legend-item"><span class="swatch" style="background: #ff1744;"></span>Acc X</div>
+            <div class="legend-item"><span class="swatch" style="background: #0b8d31;"></span>Acc Y</div>
+            <div class="legend-item"><span class="swatch" style="background: #4f21ff;"></span>Acc Z</div>
+            <div class="legend-item"><span class="swatch" style="background: #ff9f1c;"></span>Gyro X</div>
+            <div class="legend-item"><span class="swatch" style="background: #8a13ba;"></span>Gyro Y</div>
+            <div class="legend-item"><span class="swatch" style="background: #b12a34;"></span>Gyro Z</div>
+          </div>
+        </div>
+
+        <div class="chart-actions">
+          <button id="download" class="button download" type="button" disabled>Download CSV</button>
+          <div class="progress" aria-label="Collection progress"><span id="progressBar"></span></div>
+        </div>
+
+        <pre id="preview" class="preview"></pre>
+      </section>
+
+      <aside class="right">
+        <h2 class="panel-title">Dataset overview</h2>
+        <div class="summary-card">
+          <div class="metric">
+            <span class="metric-icon">F</span>
+            <span>Total collected files</span>
+            <strong id="totalFiles" class="metric-value">0</strong>
+          </div>
+          <div class="metric">
+            <span class="metric-icon" style="background: #7f3db7;">S</span>
+            <span>Total data size</span>
+            <strong id="totalSize" class="metric-value">0 KB</strong>
+          </div>
+        </div>
+
+        <div class="side-section">
+          <h2 class="panel-title">Gesture counts</h2>
+          <canvas id="countsChart" width="330" height="250"></canvas>
+        </div>
+
+        <div class="side-section">
+          <h2 class="panel-title">Recent files</h2>
+          <div class="recent-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>file</th>
+                  <th>label</th>
+                  <th>size_kb</th>
+                </tr>
+              </thead>
+              <tbody id="recentFiles"></tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const LABELS = [
+      {id: "G1", name: "star_first", group: "command", device: "system", system_state: "Entry Point"},
+      {id: "G2", name: "select_wrist_rotate", group: "command", device: "system", system_state: "Selection Point"},
+      {id: "G3", name: "tv_favorite_chanel", group: "command", device: "tv", system_state: "Active Mode"},
+      {id: "G4", name: "tv_swtich_source", group: "command", device: "tv", system_state: "Active Mode"},
+      {id: "G5", name: "tv_channel_up", group: "command", device: "tv", system_state: "Active Mode"},
+      {id: "G6", name: "tv_channel_down", group: "command", device: "tv", system_state: "Active Mode"},
+      {id: "G7", name: "tv_voice_search", group: "command", device: "tv", system_state: "Active Mode"},
+      {id: "G8", name: "speaker_volume_up", group: "command", device: "speaker", system_state: "Active Mode"},
+      {id: "G9", name: "speaker_volume_down", group: "command", device: "speaker", system_state: "Active Mode"},
+      {id: "G10", name: "light_on", group: "command", device: "light", system_state: "Active Mode"},
+      {id: "G11", name: "light_off", group: "command", device: "light", system_state: "Active Mode"},
+      {id: "G12", name: "curtain_close", group: "command", device: "curtain", system_state: "Active Mode"},
+      {id: "G13", name: "curtain_open", group: "command", device: "curtain", system_state: "Active Mode"},
+      {id: "G14", name: "stop_palm", group: "command", device: "system", system_state: "Exit Point"},
+      {id: "G15", name: "emergency_reset", group: "command", device: "system", system_state: "Emergency"},
+      {id: "N1", name: "noise_walking", group: "noise", device: "none", system_state: "Idle - Noise"},
+      {id: "N2", name: "noise_watch", group: "noise", device: "none", system_state: "Idle - Noise"},
+      {id: "N3", name: "noise_typing", group: "noise", device: "none", system_state: "Idle - Noise"},
+      {id: "N4", name: "noise_drinking", group: "noise", device: "none", system_state: "Idle - Noise"},
+      {id: "N5", name: "noise_scratch", group: "noise", device: "none", system_state: "Idle - Noise"}
+    ];
+
+    const CSV_COLUMNS = [
+      "time", "ax_g", "ay_g", "az_g", "gx_dps", "gy_dps", "gz_dps", "label"
+    ];
+
+    const colors = {
+      ax_g: "#ff1744",
+      ay_g: "#0b8d31",
+      az_g: "#4f21ff",
+      gx_dps: "#ff9f1c",
+      gy_dps: "#8a13ba",
+      gz_dps: "#b12a34"
+    };
+
+    const elements = {
+      source: document.getElementById("source"),
+      gesture: document.getElementById("gesture"),
+      subject: document.getElementById("subject"),
+      duration: document.getElementById("duration"),
+      baseline: document.getElementById("baseline"),
+      durationValue: document.getElementById("durationValue"),
+      baselineValue: document.getElementById("baselineValue"),
+      currentSource: document.getElementById("currentSource"),
+      latestFile: document.getElementById("latestFile"),
+      environment: document.getElementById("environment"),
+      status: document.getElementById("status"),
+      connect: document.getElementById("connect"),
+      ping: document.getElementById("ping"),
+      serialHelp: document.getElementById("serialHelp"),
+      start: document.getElementById("start"),
+      stop: document.getElementById("stop"),
+      download: document.getElementById("download"),
+      progressBar: document.getElementById("progressBar"),
+      previewToggle: document.getElementById("previewToggle"),
+      preview: document.getElementById("preview"),
+      signalChart: document.getElementById("signalChart"),
+      countsChart: document.getElementById("countsChart"),
+      totalFiles: document.getElementById("totalFiles"),
+      totalSize: document.getElementById("totalSize"),
+      recentFiles: document.getElementById("recentFiles")
+    };
+
+    let state = {
+      port: null,
+      collecting: false,
+      currentRows: [],
+      latestCsv: "",
+      latestFileName: "",
+      sessionId: "",
+      serialConnected: false,
+      trialCounters: JSON.parse(localStorage.getItem("trialCounters") || "{}"),
+      files: JSON.parse(localStorage.getItem("gestureFiles") || "[]")
+    };
+
+    const SERIAL_FILTERS = [
+      {usbVendorId: 0x10c4},
+      {usbVendorId: 0x1a86},
+      {usbVendorId: 0x0403},
+      {usbVendorId: 0x303a}
+    ];
+
+    function getSelectedLabel() {
+      return LABELS.find((item) => item.id === elements.gesture.value) || LABELS[0];
+    }
+
+    function populateGestures() {
+      elements.gesture.innerHTML = LABELS.map((label) => {
+        return `<option value="${label.id}">${label.id} - ${label.name}</option>`;
+      }).join("");
+    }
+
+    function sourceName() {
+      return elements.source.value === "serial" ? "ESP32 Serial" : "Computer (mock)";
+    }
+
+    function setSourceText() {
+      const name = sourceName();
+      elements.currentSource.textContent = name;
+      elements.environment.textContent = name;
+      elements.connect.disabled = elements.source.value !== "serial";
+      elements.ping.disabled = elements.source.value !== "serial";
+      elements.serialHelp.classList.toggle("is-visible", elements.source.value === "serial");
+    }
+
+    function setControlsCollecting(isCollecting) {
+      state.collecting = isCollecting;
+      elements.start.disabled = isCollecting;
+      elements.stop.disabled = !isCollecting;
+      elements.source.disabled = isCollecting;
+      elements.gesture.disabled = isCollecting;
+      elements.duration.disabled = isCollecting;
+      elements.baseline.disabled = isCollecting;
+    }
+
+    function formatTimestamp(date) {
+      const pad = (value) => String(value).padStart(2, "0");
+      return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate())
+      ].join("") + "_" + [pad(date.getHours()), pad(date.getMinutes()), pad(date.getSeconds())].join("");
+    }
+
+    function nextTrial(labelId) {
+      const key = `${elements.subject.value.trim() || "S01"}_${labelId}`;
+      state.trialCounters[key] = (state.trialCounters[key] || 0) + 1;
+      localStorage.setItem("trialCounters", JSON.stringify(state.trialCounters));
+      return state.trialCounters[key];
+    }
+
+    function buildFileName(labelId, trial) {
+      const subject = (elements.subject.value.trim() || "S01").replace(/\s+/g, "_");
+      return `${state.sessionId}_${subject}_${labelId}_T${String(trial).padStart(3, "0")}.csv`;
+    }
+
+    function parseDataLine(line) {
+      const parts = line.trim().split(",");
+      if (parts.length !== 10 || parts[0] !== "DATA") {
+        return null;
+      }
+      return {
+        millis_ms: parts[1],
+        sample_index: parts[2],
+        ax_g: Number(parts[3]),
+        ay_g: Number(parts[4]),
+        az_g: Number(parts[5]),
+        gx_dps: Number(parts[6]),
+        gy_dps: Number(parts[7]),
+        gz_dps: Number(parts[8]),
+        temp_c: Number(parts[9])
+      };
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      if (/[",\n]/.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+      return text;
+    }
+
+    function rowsToCsv(rows) {
+      return [
+        CSV_COLUMNS.join(","),
+        ...rows.map((row) => CSV_COLUMNS.map((column) => csvEscape(row[column])).join(","))
+      ].join("\n");
+    }
+
+    function updatePreview() {
+      if (!elements.previewToggle.checked) {
+        elements.preview.classList.remove("is-visible");
+        return;
+      }
+      elements.preview.classList.add("is-visible");
+      const rows = state.currentRows.slice(-6);
+      elements.preview.textContent = rowsToCsv(rows);
+    }
+
+    function recordFile(fileName, labelId, csvText) {
+      const sizeKb = new Blob([csvText]).size / 1024;
+      state.files.unshift({
+        file: fileName,
+        label: labelId,
+        size_kb: Number(sizeKb.toFixed(2)),
+        collected_at: new Date().toISOString()
+      });
+      state.files = state.files.slice(0, 200);
+      localStorage.setItem("gestureFiles", JSON.stringify(state.files));
+      renderOverview();
+    }
+
+    function renderOverview() {
+      const totalSize = state.files.reduce((sum, file) => sum + Number(file.size_kb || 0), 0);
+      elements.totalFiles.textContent = state.files.length;
+      elements.totalSize.textContent = totalSize >= 1024 ? `${(totalSize / 1024).toFixed(2)} MB` : `${totalSize.toFixed(2)} KB`;
+      elements.recentFiles.innerHTML = state.files.slice(0, 8).map((file, index) => {
+        return `<tr><td>${index}</td><td>${file.file}</td><td>${file.label}</td><td>${file.size_kb.toFixed(2)}</td></tr>`;
+      }).join("");
+      drawCountsChart();
+    }
+
+    function makeRow(sample, startTime, label, trial) {
+      const now = performance.now();
+      const elapsed = Math.max(0, (now - startTime) / 1000);
+      return {
+        time: elapsed.toFixed(4),
+        pc_time_iso: new Date().toISOString(),
+        elapsed_s: elapsed.toFixed(4),
+        millis_ms: sample.millis_ms,
+        sample_index: sample.sample_index,
+        ax_g: sample.ax_g.toFixed(5),
+        ay_g: sample.ay_g.toFixed(5),
+        az_g: sample.az_g.toFixed(5),
+        gx_dps: sample.gx_dps.toFixed(5),
+        gy_dps: sample.gy_dps.toFixed(5),
+        gz_dps: sample.gz_dps.toFixed(5),
+        temp_c: Number(sample.temp_c).toFixed(2),
+        label: label.id,
+        label_id: label.id,
+        label_name: label.name,
+        label_group: label.group,
+        device: label.device,
+        system_state: label.system_state,
+        subject_id: elements.subject.value.trim() || "S01",
+        trial,
+        session_id: state.sessionId
+      };
+    }
+
+    function syntheticSample(index, labelId) {
+      const t = index / 100;
+      const gestureSeed = Number(labelId.slice(1));
+      const motion = Math.sin(t * (2.8 + gestureSeed * 0.08)) * (gestureSeed <= 15 ? 0.65 : 0.25);
+      const noise = () => (Math.random() - 0.5);
+      return {
+        millis_ms: String(Math.round(t * 1000)),
+        sample_index: String(index),
+        ax_g: motion + noise() * 0.22,
+        ay_g: Math.cos(t * 2.2) * 0.35 + noise() * 0.22,
+        az_g: 9.8 + Math.sin(t * 4.1) * 0.25 + noise() * 0.35,
+        gx_dps: Math.sin(t * 7.1) * 12 + noise() * 22,
+        gy_dps: Math.cos(t * 6.4) * 10 + noise() * 22,
+        gz_dps: Math.sin(t * 5.7 + 1.2) * 8 + noise() * 22,
+        temp_c: 31.5 + noise() * 0.2
+      };
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function sendSerial(command) {
+      if (!state.port?.writable) {
+        throw new Error("Chưa kết nối cổng Serial.");
+      }
+      const writer = state.port.writable.getWriter();
+      await writer.write(new TextEncoder().encode(`${command}\n`));
+      writer.releaseLock();
+    }
+
+    function serialErrorMessage(error) {
+      if (error?.name === "NotFoundError") {
+        return "Bạn chưa chọn cổng. Bấm vào dòng CP2102/USB Serial trong hộp thoại rồi bấm Kết nối.";
+      }
+      if (error?.name === "NetworkError") {
+        return "Không mở được cổng Serial. Hãy đóng Arduino Serial Monitor/Serial Plotter hoặc app khác đang dùng COM rồi thử lại.";
+      }
+      if (error?.name === "InvalidStateError") {
+        return "Cổng Serial này đang được mở. Rút cắm lại ESP32 hoặc tải lại trang nếu cần.";
+      }
+      return error?.message || "Không kết nối được ESP32 Serial.";
+    }
+
+    async function openSerialPort(port) {
+      if (port.readable && port.writable) {
+        return;
+      }
+      await port.open({baudRate: 115200});
+      state.port = port;
+      state.serialConnected = true;
+      elements.connect.textContent = "Connected";
+      elements.status.textContent = "Đã kết nối ESP32 Serial.";
+    }
+
+    async function connectSerial() {
+      if (!("serial" in navigator)) {
+        elements.status.textContent = "Trình duyệt không hỗ trợ Web Serial. Hãy dùng Chrome/Edge trên localhost.";
+        return;
+      }
+      try {
+        if (state.port?.readable && state.port?.writable) {
+          elements.status.textContent = "ESP32 Serial đang được kết nối.";
+          return;
+        }
+
+        const grantedPorts = await navigator.serial.getPorts();
+        if (grantedPorts.length > 0) {
+          await openSerialPort(grantedPorts[0]);
+          return;
+        }
+
+        elements.status.textContent = "Chọn dòng CP2102 USB to UART Bridge Controller (COM3), rồi bấm Kết nối.";
+        const selectedPort = await navigator.serial.requestPort({filters: SERIAL_FILTERS});
+        await openSerialPort(selectedPort);
+      } catch (error) {
+        state.serialConnected = false;
+        elements.connect.textContent = "Connect";
+        throw new Error(serialErrorMessage(error));
+      }
+    }
+
+    async function pingSerial() {
+      if (!state.port) {
+        await connectSerial();
+      }
+      await sendSerial("PING");
+      elements.status.textContent = "Đã gửi PING tới ESP32.";
+    }
+
+    async function collectMock(label, trial, durationSec, startTime) {
+      const totalSamples = Math.round(durationSec * 100);
+      for (let index = 0; index < totalSamples && state.collecting; index += 1) {
+        const row = makeRow(syntheticSample(index, label.id), startTime, label, trial);
+        state.currentRows.push(row);
+        updateDuringCollection(index / totalSamples);
+        await sleep(10);
+      }
+    }
+
+    async function collectSerial(label, trial, durationSec, startTime) {
+      if (!state.port) {
+        await connectSerial();
+      }
+      await sendSerial("START");
+      const reader = state.port.readable.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      const deadline = performance.now() + durationSec * 1000;
+      try {
+        while (state.collecting && performance.now() < deadline) {
+          const readResult = await reader.read();
+          if (readResult.done) {
+            break;
+          }
+          buffer += decoder.decode(readResult.value, {stream: true});
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            const parsed = parseDataLine(line);
+            if (parsed) {
+              state.currentRows.push(makeRow(parsed, startTime, label, trial));
+            }
+          }
+          updateDuringCollection(1 - Math.max(0, deadline - performance.now()) / (durationSec * 1000));
+        }
+      } finally {
+        reader.releaseLock();
+        await sendSerial("STOP").catch(() => {});
+      }
+    }
+
+    async function startCollection() {
+      const label = getSelectedLabel();
+      const durationSec = Number(elements.duration.value);
+      const baselineSec = Number(elements.baseline.value);
+      const trial = nextTrial(label.id);
+      state.sessionId = formatTimestamp(new Date());
+      state.currentRows = [];
+      state.latestCsv = "";
+      state.latestFileName = buildFileName(label.id, trial);
+      elements.download.disabled = true;
+      elements.latestFile.textContent = "None";
+      setControlsCollecting(true);
+      drawSignalChart();
+      updatePreview();
+
+      for (let remaining = baselineSec; remaining > 0 && state.collecting; remaining -= 1) {
+        elements.status.textContent = `Baseline: keep still ${remaining}s`;
+        elements.progressBar.style.width = "0%";
+        await sleep(1000);
+      }
+
+      if (!state.collecting) {
+        setControlsCollecting(false);
+        elements.status.textContent = "Collection stopped.";
+        return;
+      }
+
+      const startTime = performance.now();
+      elements.status.textContent = `Gesture Data: ${label.id} - ${label.name}`;
+
+      try {
+        if (elements.source.value === "serial") {
+          await collectSerial(label, trial, durationSec, startTime);
+        } else {
+          await collectMock(label, trial, durationSec, startTime);
+        }
+        finishCollection(label);
+      } catch (error) {
+        elements.status.textContent = error.message || "Collection failed.";
+      } finally {
+        setControlsCollecting(false);
+      }
+    }
+
+    function updateDuringCollection(progress) {
+      elements.progressBar.style.width = `${Math.max(0, Math.min(100, progress * 100)).toFixed(0)}%`;
+      if (state.currentRows.length % 8 === 0) {
+        drawSignalChart();
+        updatePreview();
+      }
+    }
+
+    function stopCollection() {
+      state.collecting = false;
+      elements.status.textContent = "Stopping collection...";
+    }
+
+    function finishCollection(label) {
+      drawSignalChart();
+      updatePreview();
+      elements.progressBar.style.width = "100%";
+      state.latestCsv = rowsToCsv(state.currentRows);
+      elements.latestFile.textContent = state.latestFileName;
+      elements.download.disabled = state.currentRows.length === 0;
+      elements.status.textContent = `Gesture Data: ${label.id} - ${label.name}`;
+      recordFile(state.latestFileName, label.id, state.latestCsv);
+    }
+
+    function downloadCsv() {
+      if (!state.latestCsv) {
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([state.latestCsv], {type: "text/csv;charset=utf-8"}));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = state.latestFileName || "gesture_data.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function fitCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.round(rect.width * ratio));
+      const height = Math.max(1, Math.round(rect.height * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      return {ctx, width: rect.width, height: rect.height};
+    }
+
+    function drawPanel(ctx, box, title, yLabel, yMin, yMax, fields) {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(box.x, box.y, box.w, box.h);
+      ctx.strokeStyle = "#e5e9ee";
+      ctx.lineWidth = 1;
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "#5b6770";
+      ctx.textAlign = "center";
+      ctx.fillText(title, box.x + box.w / 2, box.y + 22);
+      ctx.save();
+      ctx.translate(box.x - 46, box.y + box.h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      const plot = {x: box.x + 56, y: box.y + 42, w: box.w - 128, h: box.h - 70};
+      ctx.strokeStyle = "#e8edf2";
+      ctx.fillStyle = "#6b7780";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "right";
+      for (let i = 0; i <= 4; i += 1) {
+        const y = plot.y + (plot.h * i / 4);
+        const value = yMax - (yMax - yMin) * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(plot.x, y);
+        ctx.lineTo(plot.x + plot.w, y);
+        ctx.stroke();
+        ctx.fillText(value.toFixed(value % 1 === 0 ? 0 : 1), plot.x - 8, y + 4);
+      }
+      for (let i = 0; i <= 5; i += 1) {
+        const x = plot.x + (plot.w * i / 5);
+        ctx.beginPath();
+        ctx.moveTo(x, plot.y);
+        ctx.lineTo(x, plot.y + plot.h);
+        ctx.stroke();
+      }
+
+      if (state.currentRows.length > 1) {
+        const maxT = Math.max(Number(elements.duration.value), Number(state.currentRows[state.currentRows.length - 1].elapsed_s) || 0.1);
+        for (const field of fields) {
+          ctx.beginPath();
+          ctx.strokeStyle = colors[field];
+          ctx.lineWidth = 2;
+          state.currentRows.forEach((row, index) => {
+            const x = plot.x + (Number(row.elapsed_s) / maxT) * plot.w;
+            const raw = Number(row[field]);
+            const y = plot.y + (1 - (raw - yMin) / (yMax - yMin)) * plot.h;
+            if (index === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          ctx.stroke();
+        }
+      }
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#6b7780";
+      for (let i = 0; i <= 5; i += 1) {
+        const x = plot.x + (plot.w * i / 5);
+        const value = Number(elements.duration.value) * i / 5;
+        ctx.fillText(value.toFixed(value % 1 === 0 ? 0 : 1), x, plot.y + plot.h + 22);
+      }
+      return plot;
+    }
+
+    function drawSignalChart() {
+      const {ctx, width, height} = fitCanvas(elements.signalChart);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, width, height);
+      const margin = {left: 18, right: 18, top: 14, bottom: 28};
+      const panelH = (height - margin.top - margin.bottom - 34) / 2;
+      drawPanel(ctx, {x: margin.left, y: margin.top, w: width - margin.left - margin.right, h: panelH}, "Accelerometer Data", "Acceleration (m/s2)", -2, 12, ["ax_g", "ay_g", "az_g"]);
+      drawPanel(ctx, {x: margin.left, y: margin.top + panelH + 34, w: width - margin.left - margin.right, h: panelH}, "Gyroscope Data", "Angular Velocity (deg/s)", -40, 40, ["gx_dps", "gy_dps", "gz_dps"]);
+      ctx.fillStyle = "#6b7780";
+      ctx.font = "16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Time (s)", width / 2, height - 6);
+    }
+
+    function drawCountsChart() {
+      const {ctx, width, height} = fitCanvas(elements.countsChart);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, width, height);
+      const counts = Object.fromEntries(LABELS.map((label) => [label.id, 0]));
+      for (const file of state.files) {
+        counts[file.label] = (counts[file.label] || 0) + 1;
+      }
+      const labels = LABELS.map((label) => label.id);
+      const max = Math.max(1, ...Object.values(counts));
+      const plot = {x: 36, y: 12, w: width - 42, h: height - 58};
+      ctx.strokeStyle = "#e8edf2";
+      ctx.fillStyle = "#788590";
+      ctx.font = "12px Arial";
+      ctx.textAlign = "right";
+      for (let i = 0; i <= 2; i += 1) {
+        const y = plot.y + plot.h * i / 2;
+        ctx.beginPath();
+        ctx.moveTo(plot.x, y);
+        ctx.lineTo(plot.x + plot.w, y);
+        ctx.stroke();
+        ctx.fillText((max - max * i / 2).toFixed(1), plot.x - 7, y + 4);
+      }
+      const gap = 3;
+      const barW = Math.max(5, (plot.w - gap * (labels.length - 1)) / labels.length);
+      labels.forEach((label, index) => {
+        const value = counts[label] || 0;
+        const h = (value / max) * plot.h;
+        const x = plot.x + index * (barW + gap);
+        ctx.fillStyle = "#2f67c7";
+        ctx.fillRect(x, plot.y + plot.h - h, barW, h);
+        if (index % 2 === 0) {
+          ctx.save();
+          ctx.translate(x + barW / 2, plot.y + plot.h + 18);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = "#7b8791";
+          ctx.textAlign = "center";
+          ctx.fillText(label, 0, 0);
+          ctx.restore();
+        }
+      });
+    }
+
+    populateGestures();
+    setSourceText();
+    renderOverview();
+    drawSignalChart();
+
+    elements.source.addEventListener("change", setSourceText);
+    elements.duration.addEventListener("input", () => {
+      elements.durationValue.textContent = Number(elements.duration.value).toFixed(1);
+      drawSignalChart();
+    });
+    elements.baseline.addEventListener("input", () => {
+      elements.baselineValue.textContent = elements.baseline.value;
+    });
+    elements.connect.addEventListener("click", () => connectSerial().catch((error) => {
+      elements.status.textContent = error.message;
+    }));
+    elements.ping.addEventListener("click", () => pingSerial().catch((error) => {
+      elements.status.textContent = error.message;
+    }));
+    elements.start.addEventListener("click", startCollection);
+    elements.stop.addEventListener("click", stopCollection);
+    elements.download.addEventListener("click", downloadCsv);
+    elements.previewToggle.addEventListener("change", updatePreview);
+    window.addEventListener("resize", () => {
+      drawSignalChart();
+      drawCountsChart();
+    });
+
+    if ("serial" in navigator) {
+      navigator.serial.addEventListener("disconnect", (event) => {
+        if (event.target === state.port) {
+          state.port = null;
+          state.serialConnected = false;
+          elements.connect.textContent = "Connect";
+          elements.status.textContent = "ESP32 đã ngắt kết nối.";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+{
+  "sample_rate_hz": 100,
+  "labels": [
+    {
+      "id": "G1",
+      "name": "star_first",
+      "group": "command",
+      "device": "system",
+      "system_state": "Entry Point",
+      "start": "Prepare gesture G1.",
+      "stop": "Finish gesture G1."
+    },
+    {
+      "id": "G2",
+      "name": "select_wrist_rotate",
+      "group": "command",
+      "device": "system",
+      "system_state": "Selection Point",
+      "start": "Prepare gesture G2.",
+      "stop": "Finish gesture G2."
+    },
+    {
+      "id": "G3",
+      "name": "tv_favorite_chanel",
+      "group": "command",
+      "device": "tv",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G3.",
+      "stop": "Finish gesture G3."
+    },
+    {
+      "id": "G4",
+      "name": "tv_swtich_source",
+      "group": "command",
+      "device": "tv",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G4.",
+      "stop": "Finish gesture G4."
+    },
+    {
+      "id": "G5",
+      "name": "tv_channel_up",
+      "group": "command",
+      "device": "tv",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G5.",
+      "stop": "Finish gesture G5."
+    },
+    {
+      "id": "G6",
+      "name": "tv_channel_down",
+      "group": "command",
+      "device": "tv",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G6.",
+      "stop": "Finish gesture G6."
+    },
+    {
+      "id": "G7",
+      "name": "tv_voice_search",
+      "group": "command",
+      "device": "tv",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G7.",
+      "stop": "Finish gesture G7."
+    },
+    {
+      "id": "G8",
+      "name": "speaker_volume_up",
+      "group": "command",
+      "device": "speaker",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G8.",
+      "stop": "Finish gesture G8."
+    },
+    {
+      "id": "G9",
+      "name": "speaker_volume_down",
+      "group": "command",
+      "device": "speaker",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G9.",
+      "stop": "Finish gesture G9."
+    },
+    {
+      "id": "G10",
+      "name": "light_on",
+      "group": "command",
+      "device": "light",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G10.",
+      "stop": "Finish gesture G10."
+    },
+    {
+      "id": "G11",
+      "name": "light_off",
+      "group": "command",
+      "device": "light",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G11.",
+      "stop": "Finish gesture G11."
+    },
+    {
+      "id": "G12",
+      "name": "curtain_close",
+      "group": "command",
+      "device": "curtain",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G12.",
+      "stop": "Finish gesture G12."
+    },
+    {
+      "id": "G13",
+      "name": "curtain_open",
+      "group": "command",
+      "device": "curtain",
+      "system_state": "Active Mode",
+      "start": "Prepare gesture G13.",
+      "stop": "Finish gesture G13."
+    },
+    {
+      "id": "G14",
+      "name": "stop_palm",
+      "group": "command",
+      "device": "system",
+      "system_state": "Exit Point",
+      "start": "Prepare gesture G14.",
+      "stop": "Finish gesture G14."
+    },
+    {
+      "id": "G15",
+      "name": "emergency_reset",
+      "group": "command",
+      "device": "system",
+      "system_state": "Emergency",
+      "start": "Prepare gesture G15.",
+      "stop": "Finish gesture G15."
+    },
+    {
+      "id": "N1",
+      "name": "noise_walking",
+      "group": "noise",
+      "device": "none",
+      "system_state": "Idle - Noise",
+      "start": "Prepare noise action N1.",
+      "stop": "Finish noise action N1."
+    },
+    {
+      "id": "N2",
+      "name": "noise_watch",
+      "group": "noise",
+      "device": "none",
+      "system_state": "Idle - Noise",
+      "start": "Prepare noise action N2.",
+      "stop": "Finish noise action N2."
+    },
+    {
+      "id": "N3",
+      "name": "noise_typing",
+      "group": "noise",
+      "device": "none",
+      "system_state": "Idle - Noise",
+      "start": "Prepare noise action N3.",
+      "stop": "Finish noise action N3."
+    },
+    {
+      "id": "N4",
+      "name": "noise_drinking",
+      "group": "noise",
+      "device": "none",
+      "system_state": "Idle - Noise",
+      "start": "Prepare noise action N4.",
+      "stop": "Finish noise action N4."
+    },
+    {
+      "id": "N5",
+      "name": "noise_scratch",
+      "group": "noise",
+      "device": "none",
+      "system_state": "Idle - Noise",
+      "start": "Prepare noise action N5.",
+      "stop": "Finish noise action N5."
+    }
+  ]
+}
